@@ -3,6 +3,7 @@
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -176,9 +177,9 @@ export default function LoginPage() {
         <div className="mt-6 text-center text-sm text-gray-600">
           <p>
             Don't have an account?{" "}
-            <a href="#" className="font-semibold text-green-600 hover:text-green-700">
+            <Link href="/register" className="font-semibold text-green-600 hover:text-green-700">
               Sign up
-            </a>
+            </Link>
           </p>
         </div>
 
