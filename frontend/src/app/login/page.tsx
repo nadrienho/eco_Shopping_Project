@@ -46,13 +46,11 @@ export default function LoginPage() {
       const result = await signIn("credentials", {
         username,
         password,
-        redirect: false, // Handle redirect manually
+        redirect: false,
       });
 
       if (result?.error) {
         setError("Invalid username or password");
-      } else if (result?.ok) {
-        // Login successful, redirect will happen via useEffect
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
@@ -62,12 +60,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-green-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-green-500 rounded-lg flex items-center justify-center">
               <span className="text-white text-xl font-bold">♻️</span>
             </div>
             <h1 className="text-3xl font-bold text-gray-900">Eco-Shop</h1>
@@ -126,7 +124,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-600 hover:text-gray-900"
+                  className="absolute right-3 top-3 text-gray-600 hover:text-green-700"
                 >
                   {showPassword ? "👁️" : "👁️‍🗨️"}
                 </button>
@@ -137,7 +135,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-700 hover:to-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 bg-gradient-to-r from-green-600 to-green-500 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -159,16 +157,16 @@ export default function LoginPage() {
 
           {/* Role Info */}
           <div className="space-y-2">
-            <p className="text-sm text-gray-600 text-center font-medium mb-3">Logging in as a:</p>
+            <p className="text-sm text-gray-600 text-center font-medium mb-3">Logging in as:</p>
             <div className="grid grid-cols-3 gap-2">
-              <div className="p-3 bg-blue-50 rounded-lg text-center border border-blue-200">
-                <p className="text-xs font-semibold text-blue-900">👤 Customer</p>
+              <div className="p-3 bg-green-50 rounded-lg text-center border border-green-100">
+                <p className="text-xs font-semibold text-green-900">👤 Customer</p>
               </div>
-              <div className="p-3 bg-purple-50 rounded-lg text-center border border-purple-200">
-                <p className="text-xs font-semibold text-purple-900">🏪 Vendor</p>
+              <div className="p-3 bg-green-50 rounded-lg text-center border border-green-100">
+                <p className="text-xs font-semibold text-green-900">🏪 Vendor</p>
               </div>
-              <div className="p-3 bg-orange-50 rounded-lg text-center border border-orange-200">
-                <p className="text-xs font-semibold text-orange-900">⚙️ Admin</p>
+              <div className="p-3 bg-green-50 rounded-lg text-center border border-green-100">
+                <p className="text-xs font-semibold text-green-900">⚙️ Admin</p>
               </div>
             </div>
           </div>
