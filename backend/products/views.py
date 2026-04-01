@@ -37,3 +37,71 @@ class UserMeView(APIView):
     def get(self, request):
         serializer = UserMeSerializer(request.user)
         return Response(serializer.data)
+    
+class RegisterView(APIView):
+    """
+    Register a new user account
+    POST /api/register/
+    """
+    def post(self, request):
+        username = request.data.get("username")
+        email = request.data.get("email")
+        password = request.data.get("password")
+        role = request.data.get("role", "customer")  # default to customer
+
+        # Validation
+        if not username or not email or not password:
+            return Response(
+                {"error": "Username, email, and password are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if len(password) < 8:
+            return Response(
+                {"error": "Password must be at least 8 characters long."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {"error": "Username already exists."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if User.objects.filter(email=email).exists():
+            return Response(
+                {"error": "Email already in use."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if role not in ["customer", "vendor"]:
+            return Response(
+                {"error": "Invalid role. Choose 'customer' or 'vendor'."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Create user
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password
+            )
+
+            # Create or get profile (use get_or_create to avoid duplicates)
+            profile, created = Profile.objects.get_or_create(
+                user=user,
+                defaults={"role": role}
+            )
+
+            return Response(
+                {
+                    "message": "Account created successfully.",
+                    "user": UserSerializer(user).data
+                },
+                status=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

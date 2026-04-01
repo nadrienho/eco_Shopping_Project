@@ -65,6 +65,15 @@ CORS_ALLOWED_ORIGINS = [
     "https://*.vercel.app"
 ]
 
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
 # For production (Week 7)
 # CORS_ALLOWED_ORIGINS += ["https://your-eco-shop.vercel.app"]
 
