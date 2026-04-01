@@ -3,6 +3,7 @@
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -24,7 +25,7 @@ export default function LoginPage() {
         admin: "/dashboard/admin",
       };
 
-      const redirectUrl = roleRedirects[session.user.role] || "/";
+      const redirectUrl = roleRedirects[session.user.role] || "/dashboard/customer";
       router.push(redirectUrl);
     }
   }, [status, session, router]);
@@ -51,13 +52,27 @@ export default function LoginPage() {
 
       if (result?.error) {
         setError("Invalid username or password");
+      } else if (result?.ok) {
+        // Redirect will happen via useEffect
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin text-4xl mb-4">⏳</div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-green-50 flex items-center justify-center p-4">
@@ -135,7 +150,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-green-600 to-green-500 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 bg-gradient-to-r from-green-600 to-green-500 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
             >
               {loading ? (
                 <>
@@ -155,41 +170,25 @@ export default function LoginPage() {
             <div className="flex-1 h-px bg-gray-300"></div>
           </div>
 
-          {/* Role Info */}
-          <div className="space-y-2">
-            <p className="text-sm text-gray-600 text-center font-medium mb-3">Logging in as:</p>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="p-3 bg-green-50 rounded-lg text-center border border-green-100">
-                <p className="text-xs font-semibold text-green-900">👤 Customer</p>
-              </div>
-              <div className="p-3 bg-green-50 rounded-lg text-center border border-green-100">
-                <p className="text-xs font-semibold text-green-900">🏪 Vendor</p>
-              </div>
-              <div className="p-3 bg-green-50 rounded-lg text-center border border-green-100">
-                <p className="text-xs font-semibold text-green-900">⚙️ Admin</p>
-              </div>
-            </div>
+          {/* Login Link */}
+          <div className="text-center text-sm text-gray-600">
+            <p>
+              Don't have an account?{" "}
+              <Link href="/register" className="font-semibold text-green-600 hover:text-green-700">
+                Sign up
+              </Link>
+            </p>
           </div>
-        </div>
-
-        {/* Footer Links */}
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p>
-            Don't have an account?{" "}
-            <a href="#" className="font-semibold text-green-600 hover:text-green-700">
-              Sign up
-            </a>
-          </p>
         </div>
 
         {/* Demo Credentials Info */}
         <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-xs font-semibold text-gray-700 mb-2">Demo Credentials:</p>
           <p className="text-xs text-gray-600">
-            Username: <code className="bg-gray-200 px-2 py-1 rounded">demo_customer</code>
+            Username: <code className="bg-gray-200 px-2 py-1 rounded">qwerty</code>
           </p>
           <p className="text-xs text-gray-600">
-            Password: <code className="bg-gray-200 px-2 py-1 rounded">password123</code>
+            Password: <code className="bg-gray-200 px-2 py-1 rounded">securepassword123</code>
           </p>
         </div>
       </div>

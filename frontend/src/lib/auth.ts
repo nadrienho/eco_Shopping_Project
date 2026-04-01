@@ -4,38 +4,109 @@ import CredentialsProvider from "next-auth/providers/credentials";
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: "Django Credentials",
+      name: "Credentials",
       credentials: {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        // ... Keep all your existing fetch logic to Django here ...
-        // (The try/catch block you already wrote)
+        if (!credentials?.username || !credentials?.password) {
+          throw new Error("Missing credentials");
+        }
+
+        try {
+          // Step 1: Get token from Django backend
+          console.log("Attempting to authenticate with:", credentials.username);
+          
+          const tokenRes = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/token/`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                username: credentials.username,
+                password: credentials.password,
+              }),
+            }
+          );
+
+          console.log("Token response status:", tokenRes.status);
+
+          if (!tokenRes.ok) {
+            const errorData = await tokenRes.text();
+            console.error("Token endpoint error:", errorData);
+            throw new Error("Invalid credentials");
+          }
+
+          const tokenData = await tokenRes.json();
+          console.log("Token received:", tokenData.access ? "✅" : "❌");
+
+          // Step 2: Get user info from Django backend
+          const userRes = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/user/me/`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${tokenData.access}`,
+              },
+            }
+          );
+
+          console.log("User response status:", userRes.status);
+
+          if (!userRes.ok) {
+            const errorData = await userRes.text();
+            console.error("User endpoint error:", errorData);
+            throw new Error("Could not fetch user data");
+          }
+
+          const userData = await userRes.json();
+          console.log("User data received:", userData.username);
+
+          return {
+            id: userData.id,
+            username: userData.username,
+            email: userData.email,
+            role: userData.profile?.role || "customer",
+            access_token: tokenData.access,
+            refresh_token: tokenData.refresh,
+          };
+        } catch (error) {
+          console.error("Authorization error:", error);
+          throw error;
+        }
       },
     }),
   ],
-  pages: {
-    signIn: "/login",
-    error: "/login?error=true",
-  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id;
+        token.username = user.username;
         token.role = user.role;
         token.access_token = user.access_token;
-        // ... add the rest of your fields ...
+        token.refresh_token = user.refresh_token;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
+        session.user.id = token.id as string;
+        session.user.username = token.username as string;
         session.user.role = token.role as string;
         session.user.access_token = token.access_token as string;
-        // ... add the rest of your fields ...
       }
       return session;
     },
   },
-  session: { strategy: "jwt", maxAge: 24 * 60 * 60 },
+  pages: {
+    signIn: "/login",
+    error: "/login?error=CredentialsSignin",
+  },
+  session: {
+    strategy: "jwt",
+    maxAge: 24 * 60 * 60,
+  },
+  secret: process.env.NEXTAUTH_SECRET,
 };
