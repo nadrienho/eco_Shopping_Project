@@ -28,20 +28,20 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-8 flex items-center gap-3 p-4 bg-white border-2 border-red-500">
+    <form onSubmit={handleSubmit} className="flex items-center gap-2">
       <input
         type="text"
-        placeholder="Search for products..."
+        placeholder="Search..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+        className="flex-1 px-3 py-1.5 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-white bg-white bg-opacity-90"
       />
       <button
         type="submit"
         disabled={loading}
-        className="px-5 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50"
+        className="px-3 py-1.5 bg-white text-green-600 rounded-lg font-semibold text-sm hover:bg-green-50 transition disabled:opacity-50"
       >
-        {loading ? "Searching..." : "Search"}
+        {loading ? "..." : "Search"}
       </button>
     </form>
   );

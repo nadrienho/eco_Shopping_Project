@@ -37,7 +37,7 @@ export default function CustomerDashboard() {
 
   return (
     <>
-      {/* Search Bar */}
+      {/* Search Bar
       <form onSubmit={handleSearch} className="mb-8 flex items-center gap-3">
         <input
           type="text"
@@ -52,7 +52,7 @@ export default function CustomerDashboard() {
         >
           Search
         </button>
-      </form>
+      </form> */}
       {/* Render search results */}
       {searchResults.length > 0 && (
         <div className="mb-8">
@@ -68,7 +68,7 @@ export default function CustomerDashboard() {
         </div>
       )}
 
-      <div className="mb-8">
+      {/* <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Eco-Shop Admin</h1>
         <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium ml-2">
           ⚙️ Administrator
@@ -79,7 +79,7 @@ export default function CustomerDashboard() {
         >
           Logout
         </button>
-      </div>
+      </div> */}
       {/* ...rest of your admin dashboard content... */}
     </>
   );
