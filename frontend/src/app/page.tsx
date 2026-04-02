@@ -79,7 +79,7 @@ export default function HomePage() {
             Get Started
           </Link>
           <Link
-            href="#products"
+            href="/browse"
             className="px-8 py-3 border-2 border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition font-semibold text-lg"
           >
             Browse Products
