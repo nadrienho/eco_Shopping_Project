@@ -9,6 +9,7 @@ class Profile(models.Model):
     ROLE_CHOICES = [
         ("customer", "Customer"),
         ("vendor", "Vendor"),
+        ("shop_admin", "Shop Admin"),
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)

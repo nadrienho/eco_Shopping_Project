@@ -97,9 +97,9 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if role not in ["customer", "vendor"]:
+        if role not in ["customer", "vendor", "shop_admin"]:
             return Response(
-                {"error": "Invalid role. Choose 'customer' or 'vendor'."},
+                {"error": "Invalid role. Choose 'customer', 'vendor', or 'shop_admin'."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -123,8 +123,8 @@ class RegisterView(APIView):
             profile = Profile.objects.create(
                 user=user,
                 role=role,
-                shop_name=shop_name if role == "vendor" else None,
-                bio=bio if role == "vendor" else None,
+                shop_name=shop_name if role in ["vendor", "shop_admin"] else None,
+                bio=bio if role in ["vendor", "shop_admin"] else None,
             )
             
             return Response(
