@@ -32,11 +32,32 @@ class UserDetailView(generics.RetrieveAPIView):
         return self.request.user
 
 class UserMeView(APIView):
+    """
+    Get the authenticated user's details
+    GET /api/user/me/
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        serializer = UserMeSerializer(request.user)
-        return Response(serializer.data)
+        user = request.user
+        try:
+            profile = Profile.objects.get(user=user)
+            user_data = {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "profile": {
+                    "role": profile.role,
+                    "shop_name": profile.shop_name,
+                    "bio": profile.bio,
+                },
+            }
+            return Response(user_data)
+        except Profile.DoesNotExist:
+            return Response(
+                {"error": "Profile not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
     
 class RegisterView(APIView):
     """
@@ -47,7 +68,9 @@ class RegisterView(APIView):
         username = request.data.get("username")
         email = request.data.get("email")
         password = request.data.get("password")
-        role = request.data.get("role", "customer")  # default to customer
+        role = request.data.get("role", "customer")
+        shop_name = request.data.get("shop_name")
+        bio = request.data.get("bio")
 
         # Validation
         if not username or not email or not password:
@@ -67,6 +90,7 @@ class RegisterView(APIView):
                 {"error": "Username already exists."},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
         if User.objects.filter(email=email).exists():
             return Response(
                 {"error": "Email already in use."},
@@ -79,6 +103,12 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        if role == "vendor" and not shop_name:
+            return Response(
+                {"error": "Shop name is required for vendors."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             # Create user
             user = User.objects.create_user(
@@ -86,13 +116,17 @@ class RegisterView(APIView):
                 email=email,
                 password=password
             )
+            user.role = role  # Attach the role to the user instance
+            user.save()
 
-            # Create or get profile (use get_or_create to avoid duplicates)
-            profile, created = Profile.objects.get_or_create(
+            # Explicitly create the profile with the correct role
+            profile = Profile.objects.create(
                 user=user,
-                defaults={"role": role}
+                role=role,
+                shop_name=shop_name if role == "vendor" else None,
+                bio=bio if role == "vendor" else None,
             )
-
+            
             return Response(
                 {
                     "message": "Account created successfully.",

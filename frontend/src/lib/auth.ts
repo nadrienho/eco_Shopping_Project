@@ -15,9 +15,6 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Step 1: Get token from Django backend
-          console.log("Attempting to authenticate with:", credentials.username);
-          
           const tokenRes = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/token/`,
             {
@@ -30,18 +27,12 @@ export const authOptions: NextAuthOptions = {
             }
           );
 
-          console.log("Token response status:", tokenRes.status);
-
           if (!tokenRes.ok) {
-            const errorData = await tokenRes.text();
-            console.error("Token endpoint error:", errorData);
             throw new Error("Invalid credentials");
           }
 
           const tokenData = await tokenRes.json();
-          console.log("Token received:", tokenData.access ? "✅" : "❌");
 
-          // Step 2: Get user info from Django backend
           const userRes = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/user/me/`,
             {
@@ -53,16 +44,11 @@ export const authOptions: NextAuthOptions = {
             }
           );
 
-          console.log("User response status:", userRes.status);
-
           if (!userRes.ok) {
-            const errorData = await userRes.text();
-            console.error("User endpoint error:", errorData);
             throw new Error("Could not fetch user data");
           }
 
           const userData = await userRes.json();
-          console.log("User data received:", userData.username);
 
           return {
             id: userData.id,

@@ -1,29 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 
 type Role = "admin" | "vendor" | "customer";
 
-const menuOptions: Record<Role, { label: string; href: string }[]> = {
+const menuOptions: Record<Role, { label: string; href: string; icon: string }[]> = {
   admin: [
-    { label: "Dashboard", href: "/dashboard/admin" },
-    { label: "Product Management", href: "/dashboard/admin/products" },
-    { label: "Review Management", href: "/dashboard/admin/reviews" },
-    { label: "User Management", href: "/dashboard/admin/users" },
+    { label: "Dashboard", href: "/dashboard/admin", icon: "📊" },
+    { label: "Product Management", href: "/dashboard/admin/products", icon: "📦" },
+    { label: "Review Management", href: "/dashboard/admin/reviews", icon: "⭐" },
+    { label: "User Management", href: "/dashboard/admin/users", icon: "👥" },
   ],
   vendor: [
-    { label: "Dashboard", href: "/dashboard/vendor" },
-    { label: "My Products", href: "/dashboard/vendor/products" },
-    { label: "Stock Management", href: "/dashboard/vendor/stock" },
-    { label: "Certifications", href: "/dashboard/vendor/certifications" },
+    { label: "Dashboard", href: "/dashboard/vendor", icon: "📊" },
+    { label: "My Products", href: "/dashboard/vendor/products", icon: "🛍️" },
+    { label: "Stock Management", href: "/dashboard/vendor/stock", icon: "📦" },
+    { label: "Certifications", href: "/dashboard/vendor/certifications", icon: "✅" },
   ],
   customer: [
-    { label: "Dashboard", href: "/dashboard/customer" },
-    { label: "Browse Products", href: "/dashboard/customer/browse" },
-    { label: "Saved Items", href: "/dashboard/customer/saved" },
-    { label: "My Orders", href: "/dashboard/customer/orders" },
+    { label: "Dashboard", href: "/dashboard/customer", icon: "🏠" },
+    { label: "Browse Products", href: "/dashboard/customer/browse", icon: "🛒" },
+    { label: "Saved Items", href: "/dashboard/customer/saved", icon: "❤️" },
+    { label: "My Orders", href: "/dashboard/customer/orders", icon: "📋" },
   ],
 };
 
@@ -33,14 +33,22 @@ export default function Sidebar({ role }: { role: Role }) {
 
   const isActive = (href: string) => pathname === href;
 
+  console.log("Sidebar rendering with role:", role);
+  console.log("Menu items:", menuOptions[role]);
+
   return (
-    <aside className="h-screen w-64 bg-white border-r border-gray-200 flex flex-col py-8 px-4">
+    <aside className="h-full w-64 bg-white border-r border-gray-200 flex flex-col py-8 px-4">
       {/* Logo */}
       <div className="mb-8 text-green-700 font-bold text-2xl flex items-center gap-2">
         <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-green-500 rounded-lg flex items-center justify-center">
           <span className="text-white text-lg">♻️</span>
         </div>
         EcoShop
+      </div>
+
+      {/* Role Badge */}
+      <div className="mb-4 px-3 py-2 bg-blue-50 rounded-lg">
+        <p className="text-xs font-semibold text-blue-700 uppercase">{role}</p>
       </div>
 
       {/* Navigation Menu */}
@@ -63,7 +71,7 @@ export default function Sidebar({ role }: { role: Role }) {
 
       {/* User Profile Section (Bottom) */}
       <div className="border-t border-gray-200 pt-4">
-        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition cursor-pointer group">
+        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition">
           {/* Profile Picture */}
           <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-green-500 rounded-full flex items-center justify-center flex-shrink-0">
             <span className="text-white font-bold text-sm">
@@ -81,7 +89,6 @@ export default function Sidebar({ role }: { role: Role }) {
             </p>
           </div>
         </div>
-
       </div>
     </aside>
   );

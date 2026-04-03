@@ -7,17 +7,14 @@ from django.conf import settings
 # --- USER PROFILES ---
 class Profile(models.Model):
     ROLE_CHOICES = [
-        ('customer', 'Customer'),
-        ('vendor', 'Vendor'),
-        ('admin', 'Administrator'),
+        ("customer", "Customer"),
+        ("vendor", "Vendor"),
     ]
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
-    bio = models.TextField(blank=True, null=True)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
-    shop_name = models.CharField(max_length=255, blank=True, null=True)
-    business_reg_number = models.CharField(max_length=100, blank=True, null=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="customer")
+    shop_name = models.CharField(max_length=255, null=True, blank=True)
+    bio = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"
@@ -102,12 +99,7 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
 
-# --- SIGNALS (Now placed outside classes) ---
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.get_or_create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
+# @receiver(post_save, sender=User)
+# def create_user_profile(sender, instance, created, **kwargs):
+#     if created:
+#         Profile.objects.get_or_create(user=instance)

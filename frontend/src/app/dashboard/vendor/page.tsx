@@ -1,7 +1,8 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useEffect } from "react";
 
 export default function VendorDashboard() {
@@ -10,143 +11,110 @@ export default function VendorDashboard() {
 
   // Redirect if not authenticated or not a vendor
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-    } else if (status === "authenticated" && session?.user?.role !== "vendor") {
+    if (status === "authenticated" && session?.user?.role !== "vendor") {
       router.push("/login");
     }
   }, [status, session, router]);
 
   if (status === "loading") {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin text-4xl mb-4">⏳</div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return null;
   }
-
   if (status !== "authenticated") {
     return null;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">♻️</span>
-            <h1 className="text-xl font-bold text-gray-900">Eco-Shop Vendor</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-gray-700">
-              Shop: <strong>{session?.user?.shop_name || session?.user?.username}</strong>
-            </span>
-            <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-              🏪 Vendor
-            </span>
-            <button
-              onClick={() => signOut({ redirect: true, callbackUrl: "/login" })}
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
-            >
-              Logout
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="bg-gradient-to-r from-green-600 to-green-500 rounded-lg p-8 text-white shadow-lg">
+        <h1 className="text-4xl font-bold mb-2">Welcome, {session?.user?.username}! 👋</h1>
+        <p className="text-green-100">Vendor Dashboard</p>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow hover:shadow-lg transition">
+          <div className="text-4xl mb-2">📦</div>
+          <h3 className="text-lg font-semibold text-gray-900">Total Products</h3>
+          <p className="text-3xl font-bold text-green-600 mt-2">0</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow hover:shadow-lg transition">
+          <div className="text-4xl mb-2">💰</div>
+          <h3 className="text-lg font-semibold text-gray-900">Total Sales</h3>
+          <p className="text-3xl font-bold text-green-600 mt-2">$0</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow hover:shadow-lg transition">
+          <div className="text-4xl mb-2">⭐</div>
+          <h3 className="text-lg font-semibold text-gray-900">Average Rating</h3>
+          <p className="text-3xl font-bold text-green-600 mt-2">0/5</p>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Link href="/dashboard/vendor/products">
+          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow hover:shadow-lg transition cursor-pointer">
+            <div className="text-4xl mb-3">🛍️</div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">My Products</h3>
+            <p className="text-gray-600 text-sm mb-4">Add, edit, or manage your products</p>
+            <button className="text-green-600 font-semibold text-sm hover:text-green-700">
+              View Products →
             </button>
           </div>
-        </div>
-      </nav>
+        </Link>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          {/* Total Products */}
-          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Total Products</p>
-                <p className="text-3xl font-bold text-gray-900">0</p>
-              </div>
-              <span className="text-4xl">📦</span>
-            </div>
+        <Link href="/dashboard/vendor/stock">
+          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow hover:shadow-lg transition cursor-pointer">
+            <div className="text-4xl mb-3">📊</div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Stock Management</h3>
+            <p className="text-gray-600 text-sm mb-4">Monitor and update inventory levels</p>
+            <button className="text-green-600 font-semibold text-sm hover:text-green-700">
+              Manage Stock →
+            </button>
           </div>
+        </Link>
 
-          {/* Total Sales */}
-          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Total Sales</p>
-                <p className="text-3xl font-bold text-gray-900">$0.00</p>
-              </div>
-              <span className="text-4xl">💰</span>
-            </div>
+        <Link href="/dashboard/vendor/certifications">
+          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow hover:shadow-lg transition cursor-pointer">
+            <div className="text-4xl mb-3">✅</div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Certifications</h3>
+            <p className="text-gray-600 text-sm mb-4">Upload eco-certifications for your products</p>
+            <button className="text-green-600 font-semibold text-sm hover:text-green-700">
+              View Certifications →
+            </button>
           </div>
+        </Link>
 
-          {/* Orders This Month */}
-          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Orders This Month</p>
-                <p className="text-3xl font-bold text-gray-900">0</p>
-              </div>
-              <span className="text-4xl">📊</span>
-            </div>
+        <Link href="/dashboard/vendor/orders">
+          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow hover:shadow-lg transition cursor-pointer">
+            <div className="text-4xl mb-3">📋</div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Orders</h3>
+            <p className="text-gray-600 text-sm mb-4">View and manage customer orders</p>
+            <button className="text-green-600 font-semibold text-sm hover:text-green-700">
+              View Orders →
+            </button>
           </div>
+        </Link>
+      </div>
 
-          {/* Avg Eco-Score */}
-          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-emerald-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Avg Eco-Score</p>
-                <p className="text-3xl font-bold text-gray-900">--</p>
-              </div>
-              <span className="text-4xl">🌱</span>
-            </div>
+      {/* Shop Info */}
+      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Shop Information</h2>
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm text-gray-600">Shop Name</p>
+            <p className="text-lg font-semibold text-gray-900">My Eco Shop</p>
           </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">📦 Product Management</h2>
-            <div className="space-y-2">
-              <button className="w-full p-3 border border-purple-300 rounded-lg hover:bg-purple-50 transition text-left font-medium text-gray-900">
-                ➕ Add New Product
-              </button>
-              <button className="w-full p-3 border border-purple-300 rounded-lg hover:bg-purple-50 transition text-left font-medium text-gray-900">
-                📋 View My Products
-              </button>
-              <button className="w-full p-3 border border-purple-300 rounded-lg hover:bg-purple-50 transition text-left font-medium text-gray-900">
-                📈 Product Analytics
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">📋 Order Management</h2>
-            <div className="space-y-2">
-              <button className="w-full p-3 border border-purple-300 rounded-lg hover:bg-purple-50 transition text-left font-medium text-gray-900">
-                🔔 Pending Orders
-              </button>
-              <button className="w-full p-3 border border-purple-300 rounded-lg hover:bg-purple-50 transition text-left font-medium text-gray-900">
-                ✅ All Orders
-              </button>
-              <button className="w-full p-3 border border-purple-300 rounded-lg hover:bg-purple-50 transition text-left font-medium text-gray-900">
-                📊 Sales Report
-              </button>
-            </div>
+          <div>
+            <p className="text-sm text-gray-600">Shop Status</p>
+            <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
+              Active
+            </span>
           </div>
         </div>
-
-        {/* Shop Settings */}
-        <div className="bg-white rounded-lg shadow p-6 mt-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">⚙️ Shop Settings</h2>
-          <button className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition">
-            Edit Shop Profile
-          </button>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }

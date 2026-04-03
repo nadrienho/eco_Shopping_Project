@@ -15,6 +15,10 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Vendor-specific fields
+  const [shopName, setShopName] = useState("");
+  const [bio, setBio] = useState("");
+
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,6 +46,13 @@ export default function RegisterPage() {
       return;
     }
 
+    // Vendor validation
+    if (role === "vendor" && !shopName.trim()) {
+      setError("Shop name is required for vendors.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/register/`,
@@ -53,6 +64,8 @@ export default function RegisterPage() {
             email,
             password,
             role,
+            shop_name: role === "vendor" ? shopName : null,
+            bio: role === "vendor" ? bio : null,
           }),
         }
       );
@@ -207,6 +220,40 @@ export default function RegisterPage() {
                 <option value="vendor">🏪 Vendor</option>
               </select>
             </div>
+
+            {/* Vendor-specific Fields */}
+            {role === "vendor" && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Shop Name *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Your shop name"
+                    value={shopName}
+                    onChange={(e) => setShopName(e.target.value)}
+                    disabled={loading}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-50"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Shop Description
+                  </label>
+                  <textarea
+                    placeholder="Tell us about your eco-friendly products"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    disabled={loading}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-50 resize-none"
+                  />
+                </div>
+              </>
+            )}
 
             {/* Submit Button */}
             <button

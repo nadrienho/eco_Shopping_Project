@@ -26,11 +26,11 @@ export default function LoginPage() {
       };
 
       const redirectUrl = roleRedirects[session.user.role] || "/dashboard/customer";
+      console.log("Redirecting to:", redirectUrl, "Role:", session.user.role);
       router.push(redirectUrl);
     }
   }, [status, session, router]);
 
-  // Show error if login failed
   const errorParam = searchParams.get("error");
   useEffect(() => {
     if (errorParam) {
@@ -49,6 +49,8 @@ export default function LoginPage() {
         password,
         redirect: false,
       });
+
+      console.log("Sign in result:", result);
 
       if (result?.error) {
         setError("Invalid username or password");
@@ -170,7 +172,7 @@ export default function LoginPage() {
             <div className="flex-1 h-px bg-gray-300"></div>
           </div>
 
-          {/* Login Link */}
+          {/* Register Link */}
           <div className="text-center text-sm text-gray-600">
             <p>
               Don't have an account?{" "}
@@ -179,17 +181,6 @@ export default function LoginPage() {
               </Link>
             </p>
           </div>
-        </div>
-
-        {/* Demo Credentials Info */}
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-xs font-semibold text-gray-700 mb-2">Demo Credentials:</p>
-          <p className="text-xs text-gray-600">
-            Username: <code className="bg-gray-200 px-2 py-1 rounded">qwerty</code>
-          </p>
-          <p className="text-xs text-gray-600">
-            Password: <code className="bg-gray-200 px-2 py-1 rounded">securepassword123</code>
-          </p>
         </div>
       </div>
     </div>
