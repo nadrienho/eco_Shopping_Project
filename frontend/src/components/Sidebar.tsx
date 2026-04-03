@@ -37,19 +37,7 @@ export default function Sidebar({ role }: { role: Role }) {
   console.log("Menu items:", menuOptions[role]);
 
   return (
-    <aside className="h-full w-64 bg-white border-r border-gray-200 flex flex-col py-8 px-4">
-      {/* Logo */}
-      <div className="mb-8 text-green-700 font-bold text-2xl flex items-center gap-2">
-        <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-green-500 rounded-lg flex items-center justify-center">
-          <span className="text-white text-lg">♻️</span>
-        </div>
-        EcoShop
-      </div>
-
-      {/* Role Badge */}
-      <div className="mb-4 px-3 py-2 bg-blue-50 rounded-lg">
-        <p className="text-xs font-semibold text-blue-700 uppercase">{role}</p>
-      </div>
+    <aside className="fixed top-0 left-0 h-screen w-64 bg-white border-r border-gray-200 flex flex-col py-8 px-4">
 
       {/* Navigation Menu */}
       <nav className="flex flex-col gap-2 flex-1">
