@@ -7,11 +7,12 @@ import { usePathname } from "next/navigation";
 type Role = "admin" | "vendor" | "customer";
 
 const menuOptions: Record<Role, { label: string; href: string; icon: string }[]> = {
-  admin: [
-    { label: "Dashboard", href: "/dashboard/admin", icon: "📊" },
-    { label: "Product Management", href: "/dashboard/admin/products", icon: "📦" },
-    { label: "Review Management", href: "/dashboard/admin/reviews", icon: "⭐" },
-    { label: "User Management", href: "/dashboard/admin/users", icon: "👥" },
+  shop_admin: [
+    { label: "Dashboard", href: "/dashboard/shop_admin", icon: "📊" },
+    { label: "Manage Customers", href: "/dashboard/shop_admin/customers", icon: "👥" },
+    { label: "Manage Vendors", href: "/dashboard/shop_admin/vendors", icon: "�️" },
+    { label: "Manage Products", href: "/dashboard/shop_admin/products", icon: "📦" },
+    { label: "System Settings", href: "/dashboard/shop_admin/settings", icon: "⚙️" },
   ],
   vendor: [
     { label: "Dashboard", href: "/dashboard/vendor", icon: "📊" },
