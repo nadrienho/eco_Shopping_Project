@@ -1,5 +1,5 @@
 from rest_framework import generics, viewsets, permissions, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from .models import Product, Profile
 from .serializers import ProductSerializer, UserSerializer, UserMeSerializer, ProfileSerializer
 from .permissions import IsVendorOrReadOnly
+from rest_framework.response import Response
 
 
 class ProductListView(generics.ListAPIView):
@@ -139,3 +140,54 @@ class RegisterView(APIView):
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
+@api_view(["GET"])
+def get_all_customers(request):
+    """
+    Get all customers in the system
+    """
+    # Ensure only shop_admins can access this endpoint
+    if not request.user.profile.role == "shop_admin":
+        return Response({"error": "Permission denied."}, status=403)
+
+    # Fetch all customers
+    customers = Profile.objects.filter(role="customer").select_related("user")
+    customer_data = [
+        {
+            "id": customer.user.id,
+            "username": customer.user.username,
+            "email": customer.user.email,
+            "is_active": customer.user.is_active,
+        }
+        for customer in customers
+    ]
+
+    # Metrics: Total number of customers
+    total_customers = customers.count()
+
+    return Response({"total_customers": total_customers, "customers": customer_data})
+
+@api_view(["POST"])
+def block_or_restore_customer(request, user_id):
+    """
+    Block or restore a customer account
+    """
+    # Ensure only shop_admins can access this endpoint
+    if not request.user.profile.role == "shop_admin":
+        return Response({"error": "Permission denied."}, status=403)
+
+    try:
+        user = User.objects.get(id=user_id)
+        if user.profile.role != "customer":
+            return Response({"error": "Only customers can be blocked or restored."}, status=400)
+
+        # Toggle the is_active status
+        user.is_active = not user.is_active
+        user.save()
+
+        status = "blocked" if not user.is_active else "restored"
+        return Response({"message": f"Customer account has been {status}."})
+    except User.DoesNotExist:
+        return Response({"error": "User not found."}, status=404)
+
+
