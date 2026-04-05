@@ -1,11 +1,11 @@
 from rest_framework import generics, viewsets, permissions, status
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
-from .models import Product, Profile
-from .serializers import ProductSerializer, UserSerializer, UserMeSerializer, ProfileSerializer
+from .models import Product, Profile, Category
+from .serializers import ProductSerializer, UserSerializer, UserMeSerializer, ProfileSerializer, CategorySerializer
 from .permissions import IsVendorOrReadOnly
 from rest_framework.response import Response
 
@@ -239,6 +239,86 @@ def block_or_restore_vendor(request, user_id):
         return Response({"message": f"Vendor account has been {status}."})
     except User.DoesNotExist:
         return Response({"error": "User not found."}, status=404)
+    
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_product(request):
+    """
+    Create a new product
+    """
+    user = request.user
+
+    # Ensure only vendors can create products
+    if not user.profile.role == "vendor":
+        return Response({"error": "Only vendors can create products."}, status=403)
+
+    # Extract product data from the request
+    name = request.data.get("name")
+    description = request.data.get("description")
+    price = request.data.get("price")
+    stock = request.data.get("stock")
+
+    # Validate the data
+    if not name or not price or not stock:
+        return Response(
+            {"error": "Name, price, and stock are required fields."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        # Create the product
+        product = Product.objects.create(
+            name=name,
+            description=description,
+            price=price,
+            stock=stock,
+            vendor=user,  # Associate the product with the logged-in vendor
+        )
+        return Response(
+            {"message": "Product created successfully.", "product": ProductSerializer(product).data},
+            status=status.HTTP_201_CREATED,
+        )
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_vendor_products(request):
+    """
+    Get all products for the logged-in vendor
+    """
+    user = request.user
+
+    # Ensure the user is a vendor
+    if not user.profile.role == "vendor":
+        return Response({"error": "Only vendors can view their products."}, status=403)
+
+    # Fetch products for the vendor
+    products = Product.objects.filter(vendor=user)
+    product_data = [
+        {
+            "id": product.id,
+            "name": product.name,
+            "description": product.description,
+            "price": product.price,
+            "stock": product.stock,
+        }
+        for product in products
+    ]
+
+    return Response({"products": product_data})
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_categories(request):
+    """
+    Get all categories
+    """
+    categories = Category.objects.all()
+    serializer = CategorySerializer(categories, many=True)
+    return Response(serializer.data)
+
+
     
 
 

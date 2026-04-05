@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import ProductListView, UserDetailView, RegisterView, block_or_restore_vendor
-from .views import get_all_customers, block_or_restore_customer, get_all_vendors, block_or_restore_vendor
+from .views import get_all_customers, block_or_restore_customer, get_all_vendors, block_or_restore_vendor, create_product, get_vendor_products
 
 
 urlpatterns = [
@@ -11,4 +11,7 @@ urlpatterns = [
     path("customers/<int:user_id>/block_restore/", block_or_restore_customer, name="block_or_restore_customer"),
     path("vendors/", get_all_vendors, name="get_all_vendors"),
     path("vendors/<int:user_id>/block_restore/", block_or_restore_vendor, name="block_or_restore_vendor"),
+    path("products/create/", create_product, name="create_product"),
+    path("products/vendor/", get_vendor_products, name="get_vendor_products"),
+    path("categories/", get_categories, name="get_categories"),
 ]
