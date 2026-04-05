@@ -189,5 +189,56 @@ def block_or_restore_customer(request, user_id):
         return Response({"message": f"Customer account has been {status}."})
     except User.DoesNotExist:
         return Response({"error": "User not found."}, status=404)
+    
+@api_view(["GET"])
+def get_all_vendors(request):
+    """
+    Get all vendors in the system
+    """
+    # Ensure only shop_admins or vendors can access this endpoint
+    if not request.user.profile.role in ["shop_admin", "vendor"]:
+        return Response({"error": "Permission denied."}, status=403)
+
+    # Fetch all vendors
+    vendors = Profile.objects.filter(role="vendor").select_related("user")
+    vendor_data = [
+        {
+            "id": vendor.user.id,
+            "username": vendor.user.username,
+            "email": vendor.user.email,
+            "is_active": vendor.user.is_active,
+        }
+        for vendor in vendors
+    ]
+
+    # Metrics: Total number of vendors
+    total_vendors = vendors.count()
+
+    return Response({"total_vendors": total_vendors, "vendors": vendor_data})
+
+@api_view(["POST"])
+def block_or_restore_vendor(request, user_id):
+    def block_or_restore_vendor(request, user_id):
+     """
+    Block or restore a vendor account
+    """
+    # Ensure only shop_admins can access this endpoint
+    if not request.user.profile.role == "shop_admin":
+        return Response({"error": "Permission denied."}, status=403)
+
+    try:
+        user = User.objects.get(id=user_id)
+        if user.profile.role != "vendor":
+            return Response({"error": "Only vendors can be blocked or restored."}, status=400)
+
+        # Toggle the is_active status
+        user.is_active = not user.is_active
+        user.save()
+
+        status = "blocked" if not user.is_active else "restored"
+        return Response({"message": f"Vendor account has been {status}."})
+    except User.DoesNotExist:
+        return Response({"error": "User not found."}, status=404)
+    
 
 
