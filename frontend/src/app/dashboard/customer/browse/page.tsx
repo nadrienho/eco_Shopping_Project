@@ -9,24 +9,45 @@ interface Product {
   name: string;
   description: string;
   price: number;
-  eco_score: number;
-  image_url?: string;
   vendor_name?: string;
+  category_name?: string;
+}
+interface Category {
+  id: number;
+  name: string;
 }
 
 export default function BrowseProductsPage() {
   const { data: session } = useSession();
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("newest");
   const [addedToCart, setAddedToCart] = useState<number | null>(null); // Track the product added to the cart
+
+  // Filters
+  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterPrice, setFilterPrice] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("newest");
 
 
   useEffect(() => {
     fetchProducts();
-  }, [filter, sortBy]);
+    fetchCategories();
+  }, [filterCategory, filterPrice, sortBy]);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories/`);
+      const data = await res.json();
+      console.log("Fetched categories:", data); // Debug log
+      setCategories(data);
+      console.log("Categories:", data);
+    } catch (err) {
+      console.error("Failed to fetch categories:", err);
+    }
+  };
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -35,15 +56,19 @@ export default function BrowseProductsPage() {
 
       // Add filters
       const params = new URLSearchParams();
-      if (filter !== "all") {
-        params.append("eco_score__gte", filter);
+      if (filterCategory !== "all") {
+        params.append("category", filterCategory);
       }
+      if (filterPrice !== "all") {
+        params.append("price__lte", filterPrice); // Assuming `price__lte` is supported in the backend
+      }
+      console.log("Fetching products with URL:", url);
       if (sortBy === "price_low") {
         params.append("ordering", "price");
       } else if (sortBy === "price_high") {
         params.append("ordering", "-price");
-      } else if (sortBy === "eco_score") {
-        params.append("ordering", "-eco_score");
+      } else if (sortBy === "newest") {
+        params.append("ordering", "-created_at");
       }
 
       if (params.toString()) {
@@ -100,20 +125,38 @@ export default function BrowseProductsPage() {
         <p className="text-white-600 mt-2">Discover sustainable products with transparent eco-scores</p>
       </div>
 
-      {/* Filters & Sorting */}
+      {/* Filters */}
       <div className="bg-white p-4 rounded-lg border border-gray-200 shadow flex flex-col md:flex-row gap-4">
-        {/* Filter by Eco Score */}
+        {/* Filter by Category */}
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Eco Score</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Category</label>
           <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           >
-            <option value="all">All Products</option>
-            <option value="70">70+ Score</option>
-            <option value="80">80+ Score</option>
-            <option value="90">90+ Score</option>
+            <option value="all">All Categories</option>
+            {Array.isArray(categories) &&
+                categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                        {category.name}
+                    </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Filter by Price */}
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Price</label>
+          <select
+            value={filterPrice}
+            onChange={(e) => setFilterPrice(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            <option value="all">All Prices</option>
+            <option value="50">Under $50</option>
+            <option value="100">Under $100</option>
+            <option value="200">Under $200</option>
           </select>
         </div>
 
@@ -128,10 +171,10 @@ export default function BrowseProductsPage() {
             <option value="newest">Newest</option>
             <option value="price_low">Price: Low to High</option>
             <option value="price_high">Price: High to Low</option>
-            <option value="eco_score">Best Eco Score</option>
           </select>
         </div>
       </div>
+
 
       {/* Products Grid */}
       {!loading && products.length > 0 && (
