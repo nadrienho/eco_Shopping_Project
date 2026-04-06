@@ -25,6 +25,7 @@ const menuOptions: Record<Role, { label: string; href: string; icon: string }[]>
     { label: "Browse Products", href: "/dashboard/customer/browse", icon: "🛒" },
     { label: "Saved Items", href: "/dashboard/customer/saved", icon: "❤️" },
     { label: "My Orders", href: "/dashboard/customer/orders", icon: "📋" },
+    { label: "My Cart", href: "/dashboard/customer/browse/cart", icon: "🛒" },
   ],
 };
 

@@ -188,7 +188,7 @@ export default function PublicBrowseProductsPage() {
                   </div>
 
                   <button className="w-full mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-sm">
-                    View Details
+                    Add to Cart
                   </button>
                 </div>
               </div>

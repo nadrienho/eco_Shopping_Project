@@ -48,6 +48,40 @@ export default function CartPage() {
     }
   }, [session]);
 
+  // Update cart item quantity
+  const updateQuantity = async (productId: number, newQuantity: number) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/update/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.user?.access_token}`,
+        },
+        body: JSON.stringify({
+          product_id: productId,
+          quantity: newQuantity,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to update cart item quantity");
+      }
+
+      // Update the cart state locally
+      setCart((prevCart) =>
+        prevCart.map((item) =>
+          item.product.id === productId
+            ? { ...item, quantity: newQuantity }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error("Error updating cart item quantity:", error);
+      alert("Failed to update cart item quantity.");
+    }
+  };
+
   // Calculate total balance
   const totalBalance = cart.reduce(
     (total, item) => total + item.product.price * item.quantity,
@@ -85,7 +119,22 @@ export default function CartPage() {
                 <p className="text-gray-600">
                   Unit Price: ${item.product.price.toFixed(2)}
                 </p>
-                <p className="text-gray-600">Quantity: {item.quantity}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <button
+                    onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                    disabled={item.quantity <= 1}
+                    className="px-2 py-1 bg-red-500 text-green-800 rounded hover:bg-red-600 disabled:bg-gray-300"
+                  >
+                    -
+                  </button>
+                  <span className="text-gray-900 font-bold">{item.quantity}</span>
+                  <button
+                    onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                    className="px-2 py-1 bg-green-500 text-green-800 rounded hover:bg-green-600"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
               <p className="text-gray-900 font-bold">
                 Total: ${(item.product.price * item.quantity).toFixed(2)}
