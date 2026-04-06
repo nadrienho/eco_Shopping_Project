@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
-from .models import Product, Profile, Category
+from .models import Product, Profile, Category, Cart, CartItem, Order, OrderItem
 from .serializers import ProductSerializer, UserSerializer, UserMeSerializer, ProfileSerializer, CategorySerializer
 from .permissions import IsVendorOrReadOnly
 from rest_framework.response import Response
@@ -323,6 +323,65 @@ def get_categories(request):
     categories = Category.objects.all()
     serializer = CategorySerializer(categories, many=True)
     return Response(serializer.data)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_to_cart(request):
+    """
+    Add a product to the cart or update its quantity
+    """
+    user = request.user
+    product_id = request.data.get("product_id")
+    quantity = request.data.get("quantity", 1)
+
+    try:
+        product = Product.objects.get(id=product_id)
+
+        # Get or create the user's cart
+        cart, created = Cart.objects.get_or_create(user=user)
+
+        # Check if the product is already in the cart
+        cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+
+        if not created:
+            # If the item already exists, update the quantity
+            cart_item.quantity += int(quantity)
+        else:
+            cart_item.quantity = int(quantity)
+
+        cart_item.save()
+
+        return Response({"message": "Product added to cart successfully."}, status=200)
+    except Product.DoesNotExist:
+        return Response({"error": "Product not found."}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def view_cart(request):
+    """
+    View the user's cart
+    """
+    user = request.user
+    try:
+        cart = Cart.objects.get(user=user)
+        cart_items = cart.items.all()
+        data = [
+            {
+                "product": {
+                    "id": item.product.id,
+                    "name": item.product.name,
+                    "price": item.product.price,
+                },
+                "quantity": item.quantity,
+            }
+            for item in cart_items
+        ]
+        return Response({"cart": data}, status=200)
+    except Cart.DoesNotExist:
+        return Response({"cart": []}, status=200)
 
 
     
