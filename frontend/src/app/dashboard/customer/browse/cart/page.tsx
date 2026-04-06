@@ -1,0 +1,122 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+
+interface CartItem {
+  product: {
+    id: number;
+    name: string;
+    price: number;
+  };
+  quantity: number;
+}
+
+export default function CartPage() {
+  const { data: session } = useSession();
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch cart data
+  useEffect(() => {
+    const fetchCart = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/`, {
+          headers: {
+            Authorization: `Bearer ${session?.user?.access_token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch cart");
+        }
+
+        const data = await res.json();
+        setCart(data.cart);
+      } catch (err) {
+        setError("Failed to load cart");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (session?.user) {
+      fetchCart();
+    }
+  }, [session]);
+
+  // Calculate total balance
+  const totalBalance = cart.reduce(
+    (total, item) => total + item.product.price * item.quantity,
+    0
+  );
+
+  const handlePayment = () => {
+    alert("Payment functionality is not implemented yet!");
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto mt-10">
+      <h1 className="text-2xl font-bold mb-6">My Cart</h1>
+
+      {/* Loading State */}
+      {loading && <p>Loading cart...</p>}
+
+      {/* Error State */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-700 font-semibold">⚠️ {error}</p>
+        </div>
+      )}
+
+      {/* Cart Items */}
+      {!loading && cart.length > 0 && (
+        <div className="space-y-4">
+          {cart.map((item, index) => (
+            <div
+              key={index}
+              className="flex justify-between items-center bg-white p-4 rounded-lg shadow"
+            >
+              <div>
+                <h3 className="text-lg font-bold text-green-600">{item.product.name}</h3>
+                <p className="text-gray-600">
+                  Unit Price: ${item.product.price.toFixed(2)}
+                </p>
+                <p className="text-gray-600">Quantity: {item.quantity}</p>
+              </div>
+              <p className="text-gray-900 font-bold">
+                Total: ${(item.product.price * item.quantity).toFixed(2)}
+              </p>
+            </div>
+          ))}
+
+          {/* Total Balance */}
+          <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg shadow">
+            <h3 className="text-lg font-bold">Total Balance</h3>
+            <p className="text-gray-900 font-bold">${totalBalance.toFixed(2)}</p>
+          </div>
+
+          {/* Pay Button */}
+          <button
+            onClick={handlePayment}
+            className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
+          >
+            Pay Now
+          </button>
+        </div>
+      )}
+
+      {/* Empty Cart */}
+      {!loading && cart.length === 0 && !error && (
+        <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="text-5xl mb-4">🛒</div>
+          <p className="text-gray-600 text-lg">Your cart is empty</p>
+          <p className="text-gray-500 text-sm mt-2">Add some products to your cart</p>
+        </div>
+      )}
+    </div>
+  );
+}

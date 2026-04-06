@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface Product {
   id: number;
@@ -14,11 +15,14 @@ interface Product {
 }
 
 export default function BrowseProductsPage() {
+  const { data: session } = useSession();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
+  const [addedToCart, setAddedToCart] = useState<number | null>(null); // Track the product added to the cart
+
 
   useEffect(() => {
     fetchProducts();
@@ -28,7 +32,7 @@ export default function BrowseProductsPage() {
     setLoading(true);
     try {
       let url = `${process.env.NEXT_PUBLIC_API_URL}/api/products/`;
-      
+
       // Add filters
       const params = new URLSearchParams();
       if (filter !== "all") {
@@ -48,7 +52,7 @@ export default function BrowseProductsPage() {
 
       const res = await fetch(url);
       const data = await res.json();
-      
+
       // Handle both paginated and non-paginated responses
       const productsList = data.results || data;
       setProducts(Array.isArray(productsList) ? productsList : []);
@@ -60,12 +64,40 @@ export default function BrowseProductsPage() {
     }
   };
 
+  const handleAddToCart = async (productId: number) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/add/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.user?.access_token}`,
+        },
+        body: JSON.stringify({
+          product_id: productId,
+          quantity: 1,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to add product to cart");
+      }
+      setAddedToCart(productId); // Update the state to reflect the product added to the cart
+      
+
+      alert("Product added to cart successfully!");
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+      alert("Failed to add product to cart.");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Browse Eco-Friendly Products</h1>
-        <p className="text-gray-600 mt-2">Discover sustainable products with transparent eco-scores</p>
+        <h1 className="text-3xl font-bold text-white-900">Browse Eco-Friendly Products</h1>
+        <p className="text-white-600 mt-2">Discover sustainable products with transparent eco-scores</p>
       </div>
 
       {/* Filters & Sorting */}
@@ -101,66 +133,51 @@ export default function BrowseProductsPage() {
         </div>
       </div>
 
-      {/* Loading State */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin text-4xl mb-4">⏳</div>
-            <p className="text-gray-600">Loading products...</p>
-          </div>
+      {/* Products Grid */}
+      {!loading && products.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map((product) => (
+            <div key={product.id} className="bg-white rounded-lg border border-gray-200 shadow hover:shadow-lg transition overflow-hidden cursor-pointer h-full">
+              {/* Product Info */}
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                  {product.name}
+                </h3>
+                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                  {product.description}
+                </p>
+
+                {/* Price & Add to Cart */}
+                <div className="flex justify-between items-center pt-3 border-t border-gray-200">
+                  <span className="text-lg font-bold text-green-600">${product.price}</span>
+                  {addedToCart === product.id ? (
+                    <Link
+                      href="/dashboard/customer/browse/cart"
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-sm"
+                    >
+                      View Cart
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() => handleAddToCart(product.id)}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-sm"
+                    >
+                      Add to Cart
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
+      {/* Loading State */}
+      {loading && <p>Loading products...</p>}
 
       {/* Error State */}
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-700 font-semibold">⚠️ {error}</p>
-        </div>
-      )}
-
-      {/* Products Grid */}
-      {!loading && products.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product) => (
-            <Link key={product.id} href={`/dashboard/customer/product/${product.id}`}>
-              <div className="bg-white rounded-lg border border-gray-200 shadow hover:shadow-lg transition overflow-hidden cursor-pointer h-full">
-                {/* Product Image */}
-                <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                  <span className="text-5xl">🌿</span>
-                </div>
-
-                {/* Product Info */}
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                    {product.name}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                    {product.description}
-                  </p>
-
-                  {/* Vendor */}
-                  {product.vendor_name && (
-                    <p className="text-gray-500 text-xs mb-2">
-                      By: {product.vendor_name}
-                    </p>
-                  )}
-
-                  {/* Price & Eco Score */}
-                  <div className="flex justify-between items-center pt-3 border-t border-gray-200">
-                    <span className="text-lg font-bold text-green-600">${product.price}</span>
-                    <span className="text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full font-semibold">
-                      Eco: {product.eco_score}
-                    </span>
-                  </div>
-
-                  {/* Add to Cart Button */}
-                  <button className="w-full mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-sm">
-                    Add to Cart
-                  </button>
-                </div>
-              </div>
-            </Link>
-          ))}
         </div>
       )}
 
@@ -172,6 +189,8 @@ export default function BrowseProductsPage() {
           <p className="text-gray-500 text-sm mt-2">Try adjusting your filters</p>
         </div>
       )}
+
+
     </div>
   );
 }
