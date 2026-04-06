@@ -38,6 +38,7 @@ class Product(models.Model):
     stock = models.IntegerField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     vendor = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     @property
     def eco_score(self):

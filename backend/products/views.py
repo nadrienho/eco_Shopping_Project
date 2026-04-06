@@ -1,24 +1,54 @@
 from rest_framework import generics, viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from django.contrib.auth.models import User
 from .models import Product, Profile, Category, Cart, CartItem, Order, OrderItem
 from .serializers import ProductSerializer, UserSerializer, UserMeSerializer, ProfileSerializer, CategorySerializer
 from .permissions import IsVendorOrReadOnly
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
+from django.http import QueryDict
 
 
-class ProductListView(generics.ListAPIView):
+class ProductListView(ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = {
+        'category': ['exact'],
+        'price': ['lte', 'gte', 'exact'], # This enables price__lte and price__gte
+    }
+    ordering_fields = ['created_at', 'price']  # Enable sorting by created_at (newest) and price
 
+    def get_queryset(self):
+        print(self.request.GET)  # Log the query parameters
+        return super().get_queryset()
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsVendorOrReadOnly]
+
+@api_view(["GET"])
+def get_products(request):
+    products = Product.objects.all()
+    category = request.GET.get("category")
+    price_lte = request.GET.get("price__lte")
+    ordering = request.GET.get("ordering")
+
+    if category:
+        products = products.filter(category_id=category)
+    if price_lte:
+        products = products.filter(price__lte=price_lte)
+    if ordering:
+        products = products.order_by(ordering)
+
+    serializer = ProductSerializer(products, many=True)
+    return Response(serializer.data)
 
 
 class UserDetailView(generics.RetrieveAPIView):
@@ -315,7 +345,7 @@ def get_vendor_products(request):
     return Response({"products": product_data})
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_categories(request):
     """
     Get all categories
