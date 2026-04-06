@@ -382,6 +382,33 @@ def view_cart(request):
         return Response({"cart": data}, status=200)
     except Cart.DoesNotExist:
         return Response({"cart": []}, status=200)
+    
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_cart_item_quantity(request):
+    """
+    Update the quantity of a cart item
+    """
+    user = request.user
+    product_id = request.data.get("product_id")
+    quantity = request.data.get("quantity")
+
+    if quantity < 1:
+        return Response({"error": "Quantity must be at least 1."}, status=400)
+
+    try:
+        cart = Cart.objects.get(user=user)
+        cart_item = CartItem.objects.get(cart=cart, product_id=product_id)
+        cart_item.quantity = quantity
+        cart_item.save()
+
+        return Response({"message": "Cart item updated successfully."}, status=200)
+    except Cart.DoesNotExist:
+        return Response({"error": "Cart not found."}, status=404)
+    except CartItem.DoesNotExist:
+        return Response({"error": "Cart item not found."}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
 
 
     
