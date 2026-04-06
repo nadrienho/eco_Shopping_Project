@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ProductListView, UserDetailView, RegisterView, block_or_restore_vendor
+from .views import ProductListView, UserDetailView, RegisterView, block_or_restore_vendor, get_categories
 from .views import get_all_customers, block_or_restore_customer, get_all_vendors, block_or_restore_vendor, create_product, get_vendor_products
 
 

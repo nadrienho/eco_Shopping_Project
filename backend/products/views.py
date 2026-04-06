@@ -218,8 +218,7 @@ def get_all_vendors(request):
 
 @api_view(["POST"])
 def block_or_restore_vendor(request, user_id):
-    def block_or_restore_vendor(request, user_id):
-     """
+    """
     Block or restore a vendor account
     """
     # Ensure only shop_admins can access this endpoint
@@ -257,27 +256,34 @@ def create_product(request):
     description = request.data.get("description")
     price = request.data.get("price")
     stock = request.data.get("stock")
+    category_id = request.data.get("category")
 
     # Validate the data
     if not name or not price or not stock:
         return Response(
-            {"error": "Name, price, and stock are required fields."},
+            {"error": "Name, price, stock and category are required fields."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     try:
+        # Fetch the category
+        category = Category.objects.get(id=category_id)
+        
         # Create the product
         product = Product.objects.create(
             name=name,
             description=description,
             price=price,
             stock=stock,
+            category=category,  # Associate the product with the selected category
             vendor=user,  # Associate the product with the logged-in vendor
         )
         return Response(
             {"message": "Product created successfully.", "product": ProductSerializer(product).data},
             status=status.HTTP_201_CREATED,
         )
+    except Category.DoesNotExist:
+        return Response({"error": "Invalid category ID."}, status=400)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

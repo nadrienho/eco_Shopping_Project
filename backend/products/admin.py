@@ -9,7 +9,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'price', 'eco_score')
+    list_display = ('name', 'category', 'stock', 'price', 'eco_score')
     list_filter = ('category',) # Allows filtering by category in the sidebar
 
 @admin.register(Profile)
