@@ -3,11 +3,12 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function VendorDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [totalProducts, setTotalProducts] = useState(0); // State to store total products
 
   // Redirect if not authenticated or not a vendor
   useEffect(() => {
@@ -16,11 +17,39 @@ export default function VendorDashboard() {
     }
   }, [status, session, router]);
 
+
+  useEffect(() => {
+    // Fetch products for the logged-in vendor
+    const fetchTotalProducts = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/products/vendor/", {
+          headers: {
+            Authorization: `Bearer ${session?.user?.access_token}`,
+          },
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || "Failed to fetch products");
+        }
+
+        const data = await res.json();
+        setTotalProducts(data.products.length);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } 
+      // finally {
+      //   setLoading(false);
+      // }
+    };
+
+    if (session?.user?.role === "vendor") {
+      fetchTotalProducts();
+    }
+  }, [session]);
+
   if (status === "loading") {
-    return null;
-  }
-  if (status !== "authenticated") {
-    return null;
+    return <p>Loading...</p>;
   }
 
   return (
@@ -36,7 +65,7 @@ export default function VendorDashboard() {
         <div className="bg-white p-6 rounded-lg border border-gray-200 shadow hover:shadow-lg transition">
           <div className="text-4xl mb-2">📦</div>
           <h3 className="text-lg font-semibold text-gray-900">Total Products</h3>
-          <p className="text-3xl font-bold text-green-600 mt-2">0</p>
+          <p className="text-3xl font-bold text-green-600 mt-2">{totalProducts}</p>
         </div>
 
         <div className="bg-white p-6 rounded-lg border border-gray-200 shadow hover:shadow-lg transition">

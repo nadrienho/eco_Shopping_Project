@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 
-type Role = "admin" | "vendor" | "customer";
+type Role = "shop_admin" | "vendor" | "customer";
 
 const menuOptions: Record<Role, { label: string; href: string; icon: string }[]> = {
   shop_admin: [
     { label: "Dashboard", href: "/dashboard/shop_admin", icon: "📊" },
     { label: "Manage Customers", href: "/dashboard/shop_admin/customers", icon: "👥" },
-    { label: "Manage Vendors", href: "/dashboard/shop_admin/vendors", icon: "�️" },
+    { label: "Manage Vendors", href: "/dashboard/shop_admin/vendors", icon: "🛍️" },
     { label: "Manage Products", href: "/dashboard/shop_admin/products", icon: "📦" },
     { label: "System Settings", href: "/dashboard/shop_admin/settings", icon: "⚙️" },
   ],
