@@ -31,6 +31,9 @@ export default function BrowseProductsPage() {
   const [filterPrice, setFilterPrice] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("newest");
 
+  // This creates an array to store the IDs of products the user hearts
+  const [savedProducts, setSavedProducts] = useState<number[]>([]);
+
 
   useEffect(() => {
     fetchProducts();
@@ -89,6 +92,19 @@ export default function BrowseProductsPage() {
     }
   };
 
+  const toggleSaveProduct = (product: Product) => {
+    const saved = localStorage.getItem("savedProducts");
+    const savedProducts = saved ? JSON.parse(saved) : [];
+
+    const isSaved = savedProducts.some((p: Product) => p.id === product.id);
+    const updated = isSaved
+        ? savedProducts.filter((p: Product) => p.id !== product.id) // Remove product
+        : [...savedProducts, product]; // Add product
+
+    localStorage.setItem("savedProducts", JSON.stringify(updated));
+    setSavedProducts(updated.map((p: Product) => p.id)); // Update the state with product IDs
+  };
+
   const handleAddToCart = async (productId: number) => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/add/`, {
@@ -116,6 +132,16 @@ export default function BrowseProductsPage() {
       alert("Failed to add product to cart.");
     }
   };
+
+//   const toggleSaveProduct = (productId: number) => {
+//     setSavedProducts((prev) =>
+//       prev.includes(productId)
+//         ? prev.filter((id) => id !== productId) // Remove from saved
+//         : [...prev, productId] // Add to saved
+//     );
+//   };
+
+  
 
   return (
     <div className="space-y-6">
@@ -181,6 +207,21 @@ export default function BrowseProductsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => (
             <div key={product.id} className="bg-white rounded-lg border border-gray-200 shadow hover:shadow-lg transition overflow-hidden cursor-pointer h-full">
+              <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative">
+                  <span className="text-5xl">🌿</span>
+                  {/* Save Icon */}
+                  <button
+                    onClick={() => toggleSaveProduct(product)}
+                    className="absolute top-2 right-2 text-2xl"
+                  >
+                    {savedProducts.includes(product.id) ? (
+                      <span className="text-red-500">❤️</span> // Filled heart
+                    ) : (
+                      <span className="text-gray-400">🤍</span> // Empty heart
+                    )}
+                  </button>
+                </div>
+
               {/* Product Info */}
               <div className="p-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
@@ -189,6 +230,17 @@ export default function BrowseProductsPage() {
                 <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                   {product.description}
                 </p>
+                {product.vendor_name && (
+                    <p className="text-gray-500 text-xs mb-2">
+                      By: {product.vendor_name}
+                    </p>
+                )}
+                {/* <div className="flex justify-between items-center pt-3 border-t border-gray-200">
+                    <span className="text-lg font-bold text-green-600">${product.price}</span>
+                    <span className="text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full font-semibold">
+                      Eco: {product.eco_score}
+                    </span>
+                </div> */}
 
                 {/* Price & Add to Cart */}
                 <div className="flex justify-between items-center pt-3 border-t border-gray-200">
