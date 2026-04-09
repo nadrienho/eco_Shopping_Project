@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from django.contrib.auth.models import User
-from .models import Product, Profile, Category, Cart, CartItem, Order, OrderItem
+from .models import Product, Profile, Category, Cart, CartItem, Order, OrderItem, SavedProduct
 from .serializers import ProductSerializer, UserSerializer, UserMeSerializer, ProfileSerializer, CategorySerializer
 from .permissions import IsVendorOrReadOnly
 from rest_framework.response import Response
@@ -32,6 +32,39 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsVendorOrReadOnly]
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_saved_products(request):
+    """
+    Fetch all saved products for the authenticated user.
+    """
+    user = request.user
+    print(f"Fetching saved products for user: {user}")
+    saved_products = SavedProduct.objects.filter(user=user).select_related("product")
+    print(f"Saved products: {saved_products}")
+    data = [
+        {
+            "id": saved.product.id,
+            "name": saved.product.name,
+            "description": saved.product.description,
+            "price": saved.product.price,
+            #"vendor_name": saved.product.category.name,  # Assuming category is used as vendor
+        }
+        for saved in saved_products
+    ]
+    return Response(data, status=200)
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def remove_saved_product(request, product_id):
+    user = request.user
+    try:
+        saved_product = SavedProduct.objects.get(user=user, product_id=product_id)
+        saved_product.delete()
+        return Response({"message": "Product removed from saved."}, status=200)
+    except SavedProduct.DoesNotExist:
+        return Response({"error": "Product not found in saved list."}, status=404)
 
 @api_view(["GET"])
 def get_products(request):

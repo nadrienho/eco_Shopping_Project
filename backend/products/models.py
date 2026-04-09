@@ -47,6 +47,14 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
+class SavedProduct(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="saved_products")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="saved_by")
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "product")  # Prevent duplicate saves
 
 # --- ORDERS & SUSTAINABILITY TRACKING ---
 class Order(models.Model):
