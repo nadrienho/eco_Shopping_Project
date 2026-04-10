@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import router from "next/dist/shared/lib/router/router";
 
 interface CartItem {
   product: {
@@ -17,6 +19,7 @@ export default function CartPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   // Fetch cart data
   useEffect(() => {
@@ -88,9 +91,9 @@ export default function CartPage() {
     0
   );
 
-  const handlePayment = () => {
-    alert("Payment functionality is not implemented yet!");
-  };
+//   const handlePayment = () => {
+//     alert("Payment functionality is not implemented yet!");
+//   };
 
   return (
     <div className="max-w-4xl mx-auto mt-10">
@@ -148,12 +151,12 @@ export default function CartPage() {
             <p className="text-gray-900 font-bold">${totalBalance.toFixed(2)}</p>
           </div>
 
-          {/* Pay Button */}
+          {/* Move to checkout page*/}
           <button
-            onClick={handlePayment}
+            onClick={() => router.push("/dashboard/customer/browse/cart/checkout")}
             className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
           >
-            Pay Now
+            Proceed to Checkout
           </button>
         </div>
       )}
