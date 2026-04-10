@@ -473,7 +473,23 @@ def update_cart_item_quantity(request):
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def clear_cart(request):
+    """
+    Clear all items from the user's cart.
+    """
+    user = request.user
+    try:
+        # Get the user's cart
+        cart = Cart.objects.get(user=user)
+        # Delete all items in the cart
+        CartItem.objects.filter(cart=cart).delete()
+        return Response({"message": "Cart cleared successfully"}, status=200)
+    except Cart.DoesNotExist:
+        return Response({"error": "Cart not found"}, status=404)
 
-    
+
+
 
 

@@ -85,6 +85,30 @@ export default function CartPage() {
     }
   };
 
+  // Clear cart
+  const clearCart = async () => {
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/clear/`, {
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${session?.user?.access_token}`,
+        },
+        });
+
+        if (!res.ok) {
+        throw new Error("Failed to clear cart on the backend");
+        }
+
+        // Clear the cart locally
+        localStorage.removeItem("cart");
+        setCart([]);
+    } catch (error) {
+        console.error("Error clearing cart:", error);
+        alert("Failed to clear the cart. Please try again.");
+    }
+  }
+    
+
   // Calculate total balance
   const totalBalance = cart.reduce(
     (total, item) => total + item.product.price * item.quantity,
@@ -157,6 +181,14 @@ export default function CartPage() {
             className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
           >
             Proceed to Checkout
+          </button>
+
+          {/* Clear Cart Button */}
+          <button
+            onClick={clearCart}
+            className="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition"
+          >
+            Clear Cart
           </button>
         </div>
       )}
