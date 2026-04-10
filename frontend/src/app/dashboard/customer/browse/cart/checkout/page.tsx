@@ -25,14 +25,38 @@ export default function CheckoutPage() {
     }
   }, []);
 
+  const [address, setAddress] = useState({ 
+    fullName: "",
+    street: "",
+    city: "",
+    region: "",
+    postCode: "",
+    country: "",
+
+  });
+  const [deliveryOption, setDeliveryOption] = useState("standard"); // Default delivery option
+  const [deliveryCost, setDeliveryCost] = useState(5.0); // Default delivery cost
+
   // Calculate totals
   const itemsTotal = cart.reduce(
     (total, item) => total + item.product.price * item.quantity,
     0
   );
-  const orderTotal = itemsTotal + postage;
+  const orderTotal = itemsTotal + deliveryCost;
 
   const handlePlaceOrder = () => {
+    if (
+      !address.fullName ||
+      !address.street ||
+      !address.city ||
+      !address.region ||
+      !address.postCode ||
+      !address.country
+    ) {
+      alert("Please fill in all the address fields.");
+      return;
+    }
+
     alert("Order placed successfully!");
     // Clear the cart after placing the order
     localStorage.removeItem("cart");
@@ -46,7 +70,7 @@ export default function CheckoutPage() {
       {/* Order Details */}
       <div className="bg-white space-y-4 p-8 rounded-xl shadow-lg">
         <div className="p-4 rounded-lg shadow">
-          <h2 className="text-lg text-black-900 font-bold mb-4">Order Summary</h2>
+          <h2 className="text-xl font-bold mb-4 text-green-600">Order Summary</h2>
           {cart.map((item, index) => (
             <div
               key={index}
@@ -78,6 +102,90 @@ export default function CheckoutPage() {
           <div className="flex justify-between items-center border-t border-gray-300 pt-4 mt-4">
             <p className="text-lg font-bold">Order Total</p>
             <p className="text-lg font-bold text-green-600">${orderTotal.toFixed(2)}</p>
+          </div>
+        </div>
+
+        {/* Shipping Address */}
+        <div className="bg-white p-4 rounded-lg shadow space-y-4">
+          <h2 className="text-xl font-bold mb-4 text-green-600">Shipping Address</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Full Name"
+              value={address.fullName}
+              onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            />
+            <input
+              type="text"
+              placeholder="Street Address"
+              value={address.street}
+              onChange={(e) => setAddress({ ...address, street: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            />
+            <input
+              type="text"
+              placeholder="City"
+              value={address.city}
+              onChange={(e) => setAddress({ ...address, city: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            />
+            <input
+              type="text"
+              placeholder="Region"
+              value={address.region}
+              onChange={(e) => setAddress({ ...address, region: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            />
+            <input
+              type="text"
+              placeholder="Post Code"
+              value={address.postCode}
+              onChange={(e) => setAddress({ ...address, postCode: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            />
+            <input
+              type="text"
+              placeholder="Country"
+              value={address.country}
+              onChange={(e) => setAddress({ ...address, country: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            />
+          </div>
+        </div>
+
+        {/* Delivery Options */}
+        <div className="bg-white p-4 rounded-lg shadow space-y-4">
+          <h2 className="text-xl font-bold mb-4 text-green-600">Delivery Options</h2>
+          <div className="space-y-2">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="delivery"
+                value="standard"
+                checked={deliveryOption === "standard"}
+                onChange={(e) => {
+                  setDeliveryOption(e.target.value);
+                  setDeliveryCost(5.0); // Standard delivery cost
+                }}
+                className="mr-2"
+              />
+              Standard Delivery ($5.00)
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="delivery"
+                value="express"
+                checked={deliveryOption === "express"}
+                onChange={(e) => {
+                  setDeliveryOption(e.target.value);
+                  setDeliveryCost(15.0); // Express delivery cost
+                }}
+                className="mr-2"
+              />
+              Express Delivery ($15.00)
+            </label>
           </div>
         </div>
 
