@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 interface CartItem {
   product: {
@@ -13,17 +14,42 @@ interface CartItem {
 }
 
 export default function CheckoutPage() {
-  const [cart, setCart] = useState<CartItem[]>([]);
   const [postage, setPostage] = useState(5.0); // Example postage cost
+
+  const { data: session } = useSession();
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    // Load cart data from localStorage or API
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
+    const fetchCart = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/`, {
+          headers: {
+            Authorization: `Bearer ${session?.user?.access_token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch cart");
+        }
+
+        const data = await res.json();
+        setCart(data.cart);
+      } catch (err) {
+        setError("Failed to load cart");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (session?.user) {
+      fetchCart();
     }
-  }, []);
+  }, [session]);
 
   const [address, setAddress] = useState({ 
     fullName: "",
@@ -43,6 +69,8 @@ export default function CheckoutPage() {
     0
   );
   const orderTotal = itemsTotal + deliveryCost;
+  console.log("Items Total:", itemsTotal);
+  console.log("Order Total:", orderTotal);
 
   const handlePlaceOrder = () => {
     if (
@@ -71,22 +99,26 @@ export default function CheckoutPage() {
       <div className="bg-white space-y-4 p-8 rounded-xl shadow-lg">
         <div className="p-4 rounded-lg shadow">
           <h2 className="text-xl font-bold mb-4 text-green-600">Order Summary</h2>
-          {cart.map((item, index) => (
-            <div
-              key={index}
-              className="flex justify-between items-center border-b border-gray-200 pb-2 mb-2"
-            >
-              <div>
-                <h3 className="text-black-900 font-semibold">{item.product.name}</h3>
-                <p className="text-black-600">
-                  ${item.product.price.toFixed(2)} x {item.quantity}
+          {cart.length > 0 ? (
+            cart.map((item, index) => (
+              <div
+                key={index}
+                className="flex justify-between items-center border-b border-gray-200 pb-2 mb-2"
+              >
+                <div>
+                  <h3 className="text-black-900 font-semibold">{item.product.name}</h3>
+                  <p className="text-black-600">
+                    ${item.product.price.toFixed(2)} x {item.quantity}
+                  </p>
+                </div>
+                <p className="text-black-900 font-bold">
+                  ${(item.product.price * item.quantity).toFixed(2)}
                 </p>
               </div>
-              <p className="text-black-900 font-bold">
-                ${(item.product.price * item.quantity).toFixed(2)}
-              </p>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-gray-600">Your cart is empty. Please add items to your cart.</p>
+          )}
         </div>
 
         {/* Totals */}
