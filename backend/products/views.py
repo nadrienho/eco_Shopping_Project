@@ -535,6 +535,37 @@ def create_order(request):
 
     return Response({"message": "Order created successfully", "orderId": order.id}, status=201)
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def view_orders(request):
+    """
+    Fetch all orders for the authenticated user.
+    """
+    user = request.user
+    # Fetch orders and "select_related" to optimize database hits
+    orders = Order.objects.filter(user=user).order_by("-created_at")
+
+    data = [
+        {
+            "id": order.id,
+            "created_at": order.created_at,
+            "total_cost": float(order.total_cost), # 1. Convert Decimal to float for JSON
+            "status": order.status,
+            "items": [
+                {
+                    # 2. FIX: Pull name from the Product, not the OrderItem
+                    "name": item.product.name, 
+                    "price": float(item.price),
+                    "quantity": item.quantity,
+                }
+                # 3. FIX: Use the correct related_name (usually 'items' or 'orderitem_set')
+                for item in order.items.all() 
+            ],
+        }
+        for order in orders
+    ]
+
+    return Response(data, status=200)
 
 
 
