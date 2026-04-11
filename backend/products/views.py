@@ -489,6 +489,51 @@ def clear_cart(request):
     except Cart.DoesNotExist:
         return Response({"error": "Cart not found"}, status=404)
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_order(request):
+    """
+    Create an order for the authenticated user.
+    """
+    user = request.user
+    data = request.data
+
+    # Extract order details from the request
+    address = data.get("address")
+    delivery_option = data.get("deliveryOption")
+    cart_items = data.get("cart")
+    total_cost = data.get("totalCost")
+
+    if not address or not cart_items:
+        return Response({"error": "Invalid order data"}, status=400)
+
+    # Create the order
+    order = Order.objects.create(
+        user=user,
+        full_name=address["fullName"],
+        street=address["street"],
+        city=address["city"],
+        region=address["region"],
+        post_code=address["postCode"],
+        country=address["country"],
+        delivery_option=delivery_option,
+        total_cost=total_cost,
+    )
+
+    # Create order items
+    for item in cart_items:
+        product = item["product"]
+        OrderItem.objects.create(
+            order=order,
+            product_id=product["id"],
+            price=product["price"],
+            quantity=item["quantity"],
+        )
+
+    # Clear the user's cart
+    CartItem.objects.filter(cart__user=user).delete()
+
+    return Response({"message": "Order created successfully", "orderId": order.id}, status=201)
 
 
 

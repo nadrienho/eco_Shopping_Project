@@ -65,12 +65,23 @@ class Order(models.Model):
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=255)
+    street = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    region = models.CharField(max_length=100)
+    post_code = models.CharField(max_length=20)
+    country = models.CharField(max_length=100)
+    delivery_option = models.CharField(max_length=50, choices=[("standard", "Standard"), ("express", "Express")])
+    total_cost = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')    
     # This field is key for your Eco-Shop metrics!
     total_carbon_impact = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    @property
+    def total_price(self):
+        # This calculates the total on the fly based on related order items
+        return sum(item.product.price * item.quantity for item in self.items.all())
 
     def __str__(self):
         return f"Order {self.id} by {self.user.username}"
