@@ -322,13 +322,34 @@ def create_product(request):
     price = request.data.get("price")
     stock = request.data.get("stock")
     category_id = request.data.get("category")
-    weight = request.data.get("weight", 0.0)
-    material_type = request.data.get("material_type", "cotton")
-    transport_distance = request.data.get("transport_distance", 0.0)
+    weight = request.data.get("weight", 2.0)
+    material_type = request.data.get("material_type")
+    transport_distance = request.data.get("transport_distance", 2.0)
     transport_mode = request.data.get("transport_mode", "truck")
-    energy_usage = request.data.get("energy_usage", 0.0)
+    energy_usage = request.data.get("energy_usage", 2.0)
     grid_intensity = request.data.get("grid_intensity", 0.2)
+    longevity = request.data.get("longevity", 50)
 
+    # Validate required fields
+    if not all([name, price, stock, category_id, material_type, transport_mode]):
+        return Response({"error": "Missing required fields."}, status=400)
+
+
+    # Validate material_type and transport_mode
+    valid_material_types = [
+        "recycled_polyester", "virgin_polyester", "organic_cotton", "conventional_cotton",
+        "linen", "hemp", "wool", "nylon", "silk", "recycled_cardboard", "virgin_paper",
+        "recycled_plastic_pet", "virgin_plastic_pet", "bioplastic_pla", "glass",
+        "aluminum_recycled", "aluminum_virgin", "steel", "copper", "lithium_ion_battery",
+        "bamboo", "cork", "hardwood_timber", "concrete"
+    ]
+    valid_transport_modes = ["air", "truck", "sea"]
+
+    if material_type not in valid_material_types:
+        return Response({"error": "Invalid material type."}, status=400)
+
+    if transport_mode not in valid_transport_modes:
+        return Response({"error": "Invalid transport mode."}, status=400)
 
     # Validate the data
     if not name or not price or not stock:
@@ -355,6 +376,7 @@ def create_product(request):
             transport_mode=transport_mode,
             energy_usage=energy_usage,
             grid_intensity=grid_intensity,
+            longevity=longevity,
         )
         return Response(
             {"message": "Product created successfully.", "product": ProductSerializer(product).data},

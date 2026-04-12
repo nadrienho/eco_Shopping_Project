@@ -61,7 +61,7 @@ class Product(models.Model):
     # Fields for CO2 calculation
     weight = models.FloatField(default=0.0)  # Weight in kilograms
     material_type = models.CharField(max_length=50, choices=MATERIAL_CHOICES, default="cotton")
-    transport_distance = models.FloatField(default=0.0)  # Distance in kilometers
+    transport_distance = models.FloatField(default=2.0)  # Distance in kilometers
     transport_mode = models.CharField(max_length=10, choices=TRANSPORT_MODE_CHOICES, default="truck")
     energy_usage = models.FloatField(default=0.0)  # Energy usage in kWh
     grid_intensity = models.FloatField(default=0.2)  # Default grid intensity (kg CO2 per kWh)
@@ -71,7 +71,7 @@ class Product(models.Model):
     actual_co2 = models.FloatField(default=0.0)  # Actual CO2 emissions
     co2_saved = models.FloatField(default=0.0)  # CO2 saved
 
-    def calculate_baseline_co2(self):
+    def calculate_co2_baseline(self):
         """
         Calculate the baseline CO2 emissions based on the product category.
         """
@@ -140,13 +140,13 @@ class Product(models.Model):
         """
         Calculate CO2 saved as the difference between baseline and actual CO2 emissions.
         """
-        return max(self.baseline_co2 - self.actual_co2, 0.0)
+        return max(self.co2_baseline - self.actual_co2, 0.0)
     
     def save(self, *args, **kwargs):
         """
         Override the save method to calculate and store baseline_co2, actual_co2, and co2_saved.
         """
-        self.co2_baseline = self.calculate_baseline_co2()
+        self.co2_baseline = self.calculate_co2_baseline()
         self.actual_co2 = self.calculate_actual_co2()
         self.co2_saved = self.calculate_co2_saved()
         super().save(*args, **kwargs)
