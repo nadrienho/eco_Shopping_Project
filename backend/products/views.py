@@ -12,6 +12,8 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from django.http import QueryDict
+from django.db.models import Sum, F
+from django.db.models.functions import TruncMonth
 
 
 class ProductListView(ListAPIView):
@@ -320,6 +322,13 @@ def create_product(request):
     price = request.data.get("price")
     stock = request.data.get("stock")
     category_id = request.data.get("category")
+    weight = request.data.get("weight", 0.0)
+    material_type = request.data.get("material_type", "cotton")
+    transport_distance = request.data.get("transport_distance", 0.0)
+    transport_mode = request.data.get("transport_mode", "truck")
+    energy_usage = request.data.get("energy_usage", 0.0)
+    grid_intensity = request.data.get("grid_intensity", 0.2)
+
 
     # Validate the data
     if not name or not price or not stock:
@@ -340,6 +349,12 @@ def create_product(request):
             stock=stock,
             category=category,  # Associate the product with the selected category
             vendor=user,  # Associate the product with the logged-in vendor
+            weight=weight,
+            material_type=material_type,
+            transport_distance=transport_distance,
+            transport_mode=transport_mode,
+            energy_usage=energy_usage,
+            grid_intensity=grid_intensity,
         )
         return Response(
             {"message": "Product created successfully.", "product": ProductSerializer(product).data},
@@ -566,6 +581,73 @@ def view_orders(request):
     ]
 
     return Response(data, status=200)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def customer_dashboard(request):
+    """
+    Fetch dashboard metrics for the authenticated user.
+    """
+    user = request.user
+
+    # Fetch orders with related data
+    orders = Order.objects.filter(user=user).prefetch_related('items__product')
+
+    # Total CO2 saved
+    total_co2_saved = sum(
+        item.product.co2_saved * item.quantity
+        for order in orders
+        for item in order.items.all()
+    )
+
+    # Number of EcoPurchases
+    eco_purchases = orders.count()
+
+    # Average EcoScore
+    eco_scores = [
+        item.product.eco_score
+        for order in orders
+        for item in order.items.all()
+    ]
+    average_eco_score = sum(eco_scores) / len(eco_scores) if eco_scores else 0
+
+    # CO2 savings over time
+    co2_savings_over_time = (
+        Order.objects.filter(user=user)
+        .annotate(month=TruncMonth("created_at"))
+        .values("month")
+        .annotate(total_co2_saved=Sum(F("items__quantity") * F("items__product__co2_saved")))
+        .order_by("month")
+    )
+
+    # Recent purchases
+    recent_orders = orders.order_by("-created_at")[:5]
+    recent_purchases = [
+        {
+            "id": order.id,
+            "created_at": order.created_at,
+            "total_cost": order.total_cost,
+            "items": [
+                {
+                    "name": item.product.name,
+                    "price": item.price,
+                    "quantity": item.quantity,
+                }
+                for item in order.items.all()
+            ],
+        }
+        for order in recent_orders
+    ]
+
+    return Response({
+        "total_co2_saved": total_co2_saved,
+        "eco_purchases": eco_purchases,
+        "average_eco_score": average_eco_score,
+        "co2_savings_over_time": list(co2_savings_over_time),
+        "recent_purchases": recent_purchases,
+    }, status=200)
+
+
 
 
 

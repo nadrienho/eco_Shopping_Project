@@ -1,6 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, Profile
-from .models import Order, OrderItem
+from .models import Category, Product, Profile, Order, OrderItem
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -9,8 +8,13 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'stock', 'price', 'eco_score')
-    list_filter = ('category',) # Allows filtering by category in the sidebar
+    list_display = ('name', 'category', 'stock', 'price', 'get_eco_score')
+    list_filter = ('category',)  # Allows filtering by category in the sidebar
+
+    def get_eco_score(self, obj):
+        return obj.eco_score
+
+    get_eco_score.short_description = 'Eco Score'
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
@@ -25,4 +29,4 @@ class OrderItemInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'status', 'total_price', 'created_at']
     list_filter = ['status', 'created_at']
-    inlines = [OrderItemInline] # Shows items directly inside the order page
+    inlines = [OrderItemInline]  # Shows items directly inside the order page

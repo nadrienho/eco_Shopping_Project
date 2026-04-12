@@ -14,9 +14,21 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            'id', 'category', 'name', 'description', 
-            'price', 'stock', 'eco_score'
+            'id', 'name', 'description', 'price', 'stock', 'category', 'vendor',
+            'created_at', 'weight', 'material_type', 'transport_distance', 'transport_mode',
+            'energy_usage', 'grid_intensity', 'co2_saved', 'co2_baseline', 'actual_co2',
         ]
+
+    def validate(self, data):
+        # Check if the user is an admin
+        user = self.context['request'].user
+        if not user.is_staff:  # `is_staff` is True for admin accounts
+            # Restrict admin-only fields
+            restricted_fields = ['carbon_footprint', 'material_sustainability', 'longevity', 'energy_usage', 'grid_intensity']
+            for field in restricted_fields:
+                if field in data:
+                    raise serializers.ValidationError({field: "This field can only be set by an admin."})
+        return data
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
