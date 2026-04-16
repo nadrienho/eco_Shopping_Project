@@ -11,6 +11,7 @@ interface Product {
   price: number;
   vendor_name?: string;
   category_name?: string;
+  eco_score?: number;
 }
 interface Category {
   id: number;

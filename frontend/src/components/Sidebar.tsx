@@ -3,10 +3,16 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import { Role } from "@/types/roles";
 
-type Role = "shop_admin" | "vendor" | "customer";
+// Define the interface as requested to enforce the shared Role type
+interface SidebarProps {
+  role: Role;
+}
 
 const menuOptions: Record<Role, { label: string; href: string; icon: string }[]> = {
+  // Ensure 'shop_admin' matches the key used in your @/types/roles definition
+  // ensure the key below matches the Type.
   shop_admin: [
     { label: "Dashboard", href: "/dashboard/shop_admin", icon: "📊" },
     { label: "Manage Customers", href: "/dashboard/shop_admin/customers", icon: "👥" },
@@ -29,21 +35,20 @@ const menuOptions: Record<Role, { label: string; href: string; icon: string }[]>
   ],
 };
 
-export default function Sidebar({ role }: { role: Role }) {
+export default function Sidebar({ role }: SidebarProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
 
   const isActive = (href: string) => pathname === href;
 
-  console.log("Sidebar rendering with role:", role);
-  console.log("Menu items:", menuOptions[role]);
+  // We use a fallback to empty array to prevent .map() crashes if role is invalid
+  const currentMenuItems = menuOptions[role] || [];
 
   return (
     <aside className="fixed top-0 left-0 h-screen w-64 bg-white border-r border-gray-200 flex flex-col py-8 px-4">
-
       {/* Navigation Menu */}
       <nav className="flex flex-col gap-2 flex-1">
-        {menuOptions[role].map((item) => (
+        {currentMenuItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
@@ -75,7 +80,7 @@ export default function Sidebar({ role }: { role: Role }) {
               {session?.user?.username || "User"}
             </p>
             <p className="text-xs text-gray-500 truncate capitalize">
-              {session?.user?.role || "customer"}
+              {role}
             </p>
           </div>
         </div>

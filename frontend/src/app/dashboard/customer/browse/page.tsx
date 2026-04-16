@@ -11,6 +11,7 @@ interface Product {
   price: number;
   vendor_name?: string;
   category_name?: string;
+  eco_score?: number;
 }
 interface Category {
   id: number;
@@ -207,19 +208,23 @@ export default function BrowseProductsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => (
             <div key={product.id} className="bg-white rounded-lg border border-gray-200 shadow hover:shadow-lg transition overflow-hidden cursor-pointer h-full">
-              <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative">
-                  <span className="text-5xl">🌿</span>
-                  {/* Save Icon */}
-                  <button
-                    onClick={() => toggleSaveProduct(product)}
-                    className="absolute top-2 right-2 text-2xl"
-                  >
+                <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative">
+                    <span className="text-5xl">🌿</span>
+                    {/* Save Icon */}
+                    <button
+                        onClick={() => toggleSaveProduct(product)}
+                        className="absolute top-2 right-2 text-2xl"
+                    >
                     {savedProducts.includes(product.id) ? (
-                      <span className="text-red-500">❤️</span> // Filled heart
+                        <span className="text-red-500">❤️</span> // Filled heart
                     ) : (
-                      <span className="text-gray-400">🤍</span> // Empty heart
+                        <span className="text-gray-400">🤍</span> // Empty heart
                     )}
-                  </button>
+                    </button>
+                </div>
+                {/* EcoScore */}
+                <div className="absolute top-4 right-4 bg-green-100 text-green-700 text-sm font-bold px-3 py-1 rounded-full shadow">
+                    {product.eco_score !== undefined ? product.eco_score : "N/A"}
                 </div>
 
               {/* Product Info */}

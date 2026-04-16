@@ -3,67 +3,70 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
+// 1. Define the Customer interface
+interface Customer {
+  id: number;
+  username: string;
+  email: string;
+  is_active: boolean;
+}
+
 export default function ManageCustomers() {
   const { data: session } = useSession();
-  const [customers, setCustomers] = useState([]);
+  
+  // 2. Type your state so TypeScript knows what's inside the array
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [totalCustomers, setTotalCustomers] = useState(0);
 
   useEffect(() => {
-    // Fetch all customers
     const fetchCustomers = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/customers/", {
+        // 3. Use NEXT_PUBLIC_API_URL instead of localhost for deployment
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+        const res = await fetch(`${apiUrl}/api/customers/`, {
           headers: {
             Authorization: `Bearer ${session?.user?.access_token}`,
           },
         });
 
-        console.log("Response status:", res.status); // Log the response status
-
-        if (!res.ok) {
-          const errorData = await res.json();
-          console.error("Error response:", errorData); // Log the error response
-          throw new Error("Failed to fetch customers");
-        }
+        if (!res.ok) throw new Error("Failed to fetch customers");
 
         const data = await res.json();
-        console.log("Fetched customers:", data); // Log the fetched data
-        setCustomers(data.customers);
-        setTotalCustomers(data.total_customers);
+        // Ensure you are accessing the correct key from your Django response
+        setCustomers(data.customers || []);
+        setTotalCustomers(data.total_customers || 0);
       } catch (error) {
         console.error("Error fetching customers:", error);
       }
     };
 
-    console.log("Session data:", session); // Log session data
-    console.log("User role:", session?.user?.role); // Log user role
-
-    if (session?.user?.role === "shop_admin") {
+    // Check for 'admin' or 'shop_admin' depending on your unified Role type
+    if (session?.user?.role === "admin" || session?.user?.role === "shop_admin") {
       fetchCustomers();
     }
   }, [session]);
 
   const toggleCustomerStatus = async (userId: number) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/customers/${userId}/block_restore/`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+      const res = await fetch(`${apiUrl}/api/customers/${userId}/block_restore/`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${session?.user?.access_token}`,
         },
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to update customer status");
-      }
+      if (!res.ok) throw new Error("Failed to update customer status");
 
       const data = await res.json();
       alert(data.message);
 
-      // Refresh the customer list
-      const updatedCustomers = customers.map((customer) =>
-        customer.id === userId ? { ...customer, is_active: !customer.is_active } : customer
+      // 4. TypeScript now knows 'customer' has an 'id' property
+      setCustomers((prev) =>
+        prev.map((customer) =>
+          customer.id === userId ? { ...customer, is_active: !customer.is_active } : customer
+        )
       );
-      setCustomers(updatedCustomers);
     } catch (error) {
       console.error("Error updating customer status:", error);
     }
@@ -71,13 +74,11 @@ export default function ManageCustomers() {
 
   return (
     <div className="space-y-8">
-      {/* Heading Section */}
       <div className="bg-blue-600 rounded-lg p-8 shadow-lg">
         <h1 className="text-5xl font-extrabold mb-4 text-white">Manage Customers</h1>
         <p className="text-2xl font-semibold text-blue-100">Total Customers: {totalCustomers}</p>
       </div>
 
-      {/* Customers Table */}
       <div className="bg-gray-100 p-6 rounded-lg border border-gray-300 shadow">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -92,9 +93,7 @@ export default function ManageCustomers() {
             {customers.map((customer, index) => (
               <tr
                 key={customer.id}
-                className={`${
-                  index % 2 === 0 ? "bg-gray-50" : "bg-gray-100"
-                } hover:bg-gray-200`}
+                className={`${index % 2 === 0 ? "bg-gray-50" : "bg-gray-100"} hover:bg-gray-200`}
               >
                 <td className="border-b py-3 px-4 text-gray-800">{customer.username}</td>
                 <td className="border-b py-3 px-4 text-gray-800">{customer.email}</td>

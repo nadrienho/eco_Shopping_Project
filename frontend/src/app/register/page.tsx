@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function RegisterPage() {
+function RegisterContent() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -139,7 +139,7 @@ export default function RegisterPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={loading}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition disabled:bg-gray-50"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition disabled:bg-gray-50"
                 required
               />
             </div>
@@ -156,7 +156,7 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition disabled:bg-gray-50"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition disabled:bg-gray-50"
                 required
               />
             </div>
@@ -174,7 +174,7 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition disabled:bg-gray-50"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition disabled:bg-gray-50"
                   required
                 />
                 <button
@@ -199,7 +199,7 @@ export default function RegisterPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={loading}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition disabled:bg-gray-50"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition disabled:bg-gray-50"
                 required
               />
             </div>
@@ -214,7 +214,7 @@ export default function RegisterPage() {
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 disabled={loading}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition disabled:bg-gray-50"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition disabled:bg-gray-50"
               >
                 <option value="customer">👤 Customer</option>
                 <option value="vendor">🏪 Vendor</option>
@@ -223,7 +223,7 @@ export default function RegisterPage() {
 
             {/* Vendor-specific Fields */}
             {role === "vendor" && (
-              <>
+              <div className="space-y-4 animate-in fade-in duration-300">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Shop Name *
@@ -252,7 +252,7 @@ export default function RegisterPage() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-50 resize-none"
                   />
                 </div>
-              </>
+              </div>
             )}
 
             {/* Submit Button */}
@@ -279,7 +279,6 @@ export default function RegisterPage() {
             <div className="flex-1 h-px bg-gray-300"></div>
           </div>
 
-          {/* Login Link */}
           <div className="text-center text-sm text-gray-600">
             <p>
               Already have an account?{" "}
@@ -294,16 +293,28 @@ export default function RegisterPage() {
         <div className="mt-4 text-center text-xs text-gray-500">
           <p>
             By creating an account, you agree to our{" "}
-            <Link href="#" className="text-green-600 hover:text-green-700">
-              Terms of Service
-            </Link>{" "}
+            <Link href="#" className="text-green-600 hover:text-green-700 underline">Terms</Link>{" "}
             and{" "}
-            <Link href="#" className="text-green-600 hover:text-green-700">
-              Privacy Policy
-            </Link>
+            <Link href="#" className="text-green-600 hover:text-green-700 underline">Privacy Policy</Link>
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+// 2. Final Export with Suspense wrapper to prevent Prerender errors
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin text-4xl mb-4 text-green-600">⏳</div>
+          <p className="text-gray-600">Preparing registration...</p>
+        </div>
+      </div>
+    }>
+      <RegisterContent />
+    </Suspense>
   );
 }

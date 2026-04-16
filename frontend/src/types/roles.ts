@@ -1,0 +1,1 @@
+export type Role = "customer" | "vendor" | "shop_admin";

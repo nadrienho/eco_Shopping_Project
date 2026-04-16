@@ -72,7 +72,7 @@ export default function CheckoutPage() {
   console.log("Items Total:", itemsTotal);
   console.log("Order Total:", orderTotal);
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (
       !address.fullName ||
       !address.street ||
@@ -85,10 +85,38 @@ export default function CheckoutPage() {
       return;
     }
 
-    alert("Order placed successfully!");
-    // Clear the cart after placing the order
-    localStorage.removeItem("cart");
-    router.push("/dashboard/customer/orders"); // Redirect to orders page
+    const orderDetails = {
+      address,
+      deliveryOption,
+      cart,
+      totalCost: orderTotal,
+    };
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.user?.access_token}`,
+        },
+        body: JSON.stringify(orderDetails),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to create order");
+      }
+
+      const data = await res.json();
+      alert("Order placed successfully!");
+      console.log("Order ID:", data.orderId);
+
+      // Clear the cart after placing the order
+      localStorage.removeItem("cart");
+      router.push("/dashboard/customer/orders"); // Redirect to orders page
+    } catch (error) {
+      console.error("Error placing order:", error);
+      alert("Failed to place order. Please try again.");
+    }
   };
 
   return (

@@ -28,7 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
         'localhost',
         '127.0.0.1',
-        '.vercel.app'
+        'ecoshop-backend-n4o8.onrender.com'
 ]
 
 
@@ -48,8 +48,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -62,7 +62,8 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://*.vercel.app"
+    "https://my_ecoshop.onrender.com",
+    "https://ecoshop-frontend-2kwy.vercel.app",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -97,13 +98,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
+import dj_database_url
+import os
 
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.environ.get('postgresql://postgres:Napfar-2cymzo-roshub@db.nsutmhpqcorwyvzeyrpj.supabase.co:5432/postgres'),  # Use the Render-provided DATABASE_URL
+        #default=os.environ.get('postgresql://ecoshop_db_j7z2_user:3zVAiUGITiLloFfw97gq2b1M6q8fenWU@dpg-d7enntn7f7vs73da25i0-a/ecoshop_db_j7z2'),
+        conn_max_age=600,  # Keep database connections open for 10 minutes
+        ssl_require=True  # Enforce SSL for database connections
+    )
+}
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-import dj_database_url
-DATABASES = {
-    'default': dj_database_url.config(default='postgresql://postgres:Napfar-2cymzo-roshub@db.nsutmhpqcorwyvzeyrpj.supabase.co:5432/postgres')
-}
+
+# DATABASES = {
+#     'default': dj_database_url.config(default='postgresql://postgres:Napfar-2cymzo-roshub@db.nsutmhpqcorwyvzeyrpj.supabase.co:5432/postgres')
+# }
 #DATABASES = {
 #    'default': {
 #        'ENGINE': 'django.db.backends.sqlite3',
@@ -158,7 +169,7 @@ import os
 STATIC_URL = '/static/'
 
 # The directory where collectstatic will put all files for deployment
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Enable WhiteNoise's compression and caching support for better performance
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

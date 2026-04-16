@@ -3,67 +3,70 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
-export default function ManageCustomers() {
+// 1. Define the Vendor interface to stop the "type never" error
+interface Vendor {
+  id: number;
+  username: string;
+  email: string;
+  is_active: boolean;
+}
+
+export default function ManageVendors() {
   const { data: session } = useSession();
-  const [vendors, setVendors] = useState([]);
+  
+  // 2. Properly type the state
+  const [vendors, setVendors] = useState<Vendor[]>([]);
   const [totalVendors, setTotalVendors] = useState(0);
 
   useEffect(() => {
-    // Fetch all vendors
     const fetchVendors = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/vendors/", {
+        // 3. Use Environment Variable for production
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+        const res = await fetch(`${baseUrl}/api/vendors/`, {
           headers: {
             Authorization: `Bearer ${session?.user?.access_token}`,
           },
         });
 
-        console.log("Response status:", res.status); // Log the response status
-
-        if (!res.ok) {
-          const errorData = await res.json();
-          console.error("Error response:", errorData); // Log the error response
-          throw new Error("Failed to fetch vendors");
-        }
+        if (!res.ok) throw new Error("Failed to fetch vendors");
 
         const data = await res.json();
-        console.log("Fetched vendors:", data); // Log the fetched data
-        setVendors(data.vendors);
-        setTotalVendors(data.total_vendors);
+        // Adjust the data key if your Django backend uses a different name
+        setVendors(data.vendors || []);
+        setTotalVendors(data.total_vendors || 0);
       } catch (error) {
         console.error("Error fetching vendors:", error);
       }
     };
 
-    console.log("Session data:", session); // Log session data
-    console.log("User role:", session?.user?.role); // Log user role
-
-    if (session?.user?.role === "shop_admin") {
+    // Use "admin" or "shop_admin" based on your unified Role type
+    if (session?.user?.role === "shop_admin" || session?.user?.role === "admin") {
       fetchVendors();
     }
   }, [session]);
 
   const toggleVendorStatus = async (userId: number) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/vendors/${userId}/block_restore/`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+      const res = await fetch(`${baseUrl}/api/vendors/${userId}/block_restore/`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${session?.user?.access_token}`,
         },
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to update vendor status");
-      }
+      if (!res.ok) throw new Error("Failed to update vendor status");
 
       const data = await res.json();
       alert(data.message);
 
-      // Refresh the vendor list
-      const updatedVendors = vendors.map((vendor) =>
-        vendor.id === userId ? { ...vendor, is_active: !vendor.is_active } : vendor
+      // 4. Update state safely
+      setVendors((prevVendors) =>
+        prevVendors.map((vendor) =>
+          vendor.id === userId ? { ...vendor, is_active: !vendor.is_active } : vendor
+        )
       );
-      setVendors(updatedVendors);
     } catch (error) {
       console.error("Error updating vendor status:", error);
     }
@@ -71,13 +74,11 @@ export default function ManageCustomers() {
 
   return (
     <div className="space-y-8">
-      {/* Heading Section */}
       <div className="bg-blue-600 rounded-lg p-8 shadow-lg">
         <h1 className="text-5xl font-extrabold mb-4 text-white">Manage Vendors</h1>
         <p className="text-2xl font-semibold text-blue-100">Total Vendors: {totalVendors}</p>
       </div>
 
-      {/* Vendors Table */}
       <div className="bg-gray-100 p-6 rounded-lg border border-gray-300 shadow">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -92,9 +93,7 @@ export default function ManageCustomers() {
             {vendors.map((vendor, index) => (
               <tr
                 key={vendor.id}
-                className={`${
-                  index % 2 === 0 ? "bg-gray-50" : "bg-gray-100"
-                } hover:bg-gray-200`}
+                className={`${index % 2 === 0 ? "bg-gray-50" : "bg-gray-100"} hover:bg-gray-200`}
               >
                 <td className="border-b py-3 px-4 text-gray-800">{vendor.username}</td>
                 <td className="border-b py-3 px-4 text-gray-800">{vendor.email}</td>
