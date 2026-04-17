@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-fa#mx+c^44k^f58d%2bzp^xx9m#&#f4ep&gc&k)&zxeo^04jh)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
         'localhost',
@@ -98,17 +98,37 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-import dj_database_url
 import os
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('postgresql://postgres:Napfar-2cymzo-roshub@db.nsutmhpqcorwyvzeyrpj.supabase.co:5432/postgres'),  # Use the Render-provided DATABASE_URL
-        #default=os.environ.get('postgresql://ecoshop_db_j7z2_user:3zVAiUGITiLloFfw97gq2b1M6q8fenWU@dpg-d7enntn7f7vs73da25i0-a/ecoshop_db_j7z2'),
-        conn_max_age=600,  # Keep database connections open for 10 minutes
-        ssl_require=True  # Enforce SSL for database connections
-    )
-}
+if os.environ.get("USE_SQLITE", "1") == "1":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+else:
+    import dj_database_url
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.environ.get("postgresql://postgres:Napfar-2cymzo-roshub@db.nsutmhpqcorwyvzeyrpj.supabase.co:5432/postgres"),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+
+
+# import dj_database_url
+# import os
+
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=os.environ.get('postgresql://postgres:Napfar-2cymzo-roshub@db.nsutmhpqcorwyvzeyrpj.supabase.co:5432/postgres'),  # Use the Render-provided DATABASE_URL
+#         #default=os.environ.get('postgresql://ecoshop_db_j7z2_user:3zVAiUGITiLloFfw97gq2b1M6q8fenWU@dpg-d7enntn7f7vs73da25i0-a/ecoshop_db_j7z2'),
+#         conn_max_age=600,  # Keep database connections open for 10 minutes
+#         ssl_require=True  # Enforce SSL for database connections
+#     )
+# }
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 

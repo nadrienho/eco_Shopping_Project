@@ -148,8 +148,8 @@ export default function BrowseProductsPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white-900">Browse Eco-Friendly Products</h1>
-        <p className="text-white-600 mt-2">Discover sustainable products with transparent eco-scores</p>
+        <h1 className="text-3xl font-bold text-green-900">Browse Eco-Friendly Products</h1>
+        <p className="text-green-600 mt-2">Discover sustainable products with transparent eco-scores</p>
       </div>
 
       {/* Filters */}
