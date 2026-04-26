@@ -26,7 +26,7 @@ export default function VendorProducts() {
     const fetchProducts = async () => {
       try {
         // 3. Use Environment Variable for the live site
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL}`;
         
         const res = await fetch(`${API_BASE_URL}/api/products/vendor/`, {
           headers: {
@@ -65,7 +65,7 @@ export default function VendorProducts() {
 
   return (
     <div className="max-w-4xl mx-auto mt-10">
-      <div className="flex justify-between items-center mb-6">
+      <div className="bg-gradient-to-r from-green-600 to-green-500 rounded-lg p-8 text-white shadow-lg flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">My Products</h1>
         <button
           onClick={() => router.push("/dashboard/vendor/products/create")}
@@ -79,19 +79,19 @@ export default function VendorProducts() {
         <table className="w-full border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-200">
-              <th className="border border-gray-300 px-4 py-2 text-left">Name</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Description</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Price</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Stock</th>
+              <th className="border border-gray-300 px-4 py-2 text-left text-gray-600">Name</th>
+              <th className="border border-gray-300 px-4 py-2 text-left text-gray-600">Description</th>
+              <th className="border border-gray-300 px-4 py-2 text-left text-gray-600">Price</th>
+              <th className="border border-gray-300 px-4 py-2 text-left text-gray-600">Stock</th>
             </tr>
           </thead>
           <tbody>
             {products.map((product) => (
               <tr key={product.id} className="hover:bg-gray-100">
-                <td className="border border-gray-300 px-4 py-2 font-medium">{product.name}</td>
+                <td className="border border-gray-300 px-4 py-2 font-medium text-gray-600">{product.name}</td>
                 <td className="border border-gray-300 px-4 py-2 text-gray-600">{product.description}</td>
-                <td className="border border-gray-300 px-4 py-2">${product.price}</td>
-                <td className="border border-gray-300 px-4 py-2">{product.stock}</td>
+                <td className="border border-gray-300 px-4 py-2 text-gray-600">${product.price}</td>
+                <td className="border border-gray-300 px-4 py-2 text-gray-600">{product.stock}</td>
               </tr>
             ))}
           </tbody>

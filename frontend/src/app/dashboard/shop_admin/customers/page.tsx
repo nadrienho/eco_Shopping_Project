@@ -22,7 +22,7 @@ export default function ManageCustomers() {
     const fetchCustomers = async () => {
       try {
         // 3. Use NEXT_PUBLIC_API_URL instead of localhost for deployment
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL}`;
         const res = await fetch(`${apiUrl}/api/customers/`, {
           headers: {
             Authorization: `Bearer ${session?.user?.access_token}`,
@@ -48,7 +48,7 @@ export default function ManageCustomers() {
 
   const toggleCustomerStatus = async (userId: number) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL}`;
       const res = await fetch(`${apiUrl}/api/customers/${userId}/block_restore/`, {
         method: "POST",
         headers: {
@@ -61,7 +61,6 @@ export default function ManageCustomers() {
       const data = await res.json();
       alert(data.message);
 
-      // 4. TypeScript now knows 'customer' has an 'id' property
       setCustomers((prev) =>
         prev.map((customer) =>
           customer.id === userId ? { ...customer, is_active: !customer.is_active } : customer
@@ -74,7 +73,7 @@ export default function ManageCustomers() {
 
   return (
     <div className="space-y-8">
-      <div className="bg-blue-600 rounded-lg p-8 shadow-lg">
+      <div className="bg-gradient-to-r from-green-600 to-green-500 rounded-lg p-8 text-white shadow-lg">
         <h1 className="text-5xl font-extrabold mb-4 text-white">Manage Customers</h1>
         <p className="text-2xl font-semibold text-blue-100">Total Customers: {totalCustomers}</p>
       </div>

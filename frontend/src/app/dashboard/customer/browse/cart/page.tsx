@@ -121,7 +121,9 @@ export default function CartPage() {
 
   return (
     <div className="max-w-4xl mx-auto mt-10">
-      <h1 className="text-2xl font-bold mb-6">My Cart</h1>
+      <div className="bg-gradient-to-r from-green-600 to-green-500 rounded-lg p-8 text-white shadow-lg text-center">
+        <h1 className="text-3xl font-bold">My Cart</h1>
+      </div>
 
       {/* Loading State */}
       {loading && <p>Loading cart...</p>}

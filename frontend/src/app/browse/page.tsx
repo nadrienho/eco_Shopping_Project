@@ -132,9 +132,9 @@ export default function BrowseProductsPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">Browse Products</h1>
-          <p className="text-gray-600 mt-2">Discover sustainable products with transparent eco-scores</p>
+        <div className="bg-gradient-to-r from-green-600 to-green-500 rounded-lg p-8 text-white shadow-lg text-center">
+          <h1 className="text-3xl font-bold">Browse Eco-Friendly Products</h1>
+          <p className="text-green-100 mt-2">Discover sustainable products with transparent eco-scores</p>
         </div>
 
         {/* Filters */}
@@ -145,7 +145,7 @@ export default function BrowseProductsPage() {
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-600"
           >
             <option value="all">All Categories</option>
             {Array.isArray(categories) &&
@@ -163,7 +163,7 @@ export default function BrowseProductsPage() {
           <select
             value={filterPrice}
             onChange={(e) => setFilterPrice(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-600"
           >
             <option value="all">All Prices</option>
             <option value="50">Under $50</option>
@@ -178,7 +178,7 @@ export default function BrowseProductsPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-600"
           >
             <option value="newest">Newest</option>
             <option value="price_low">Price: Low to High</option>

@@ -31,7 +31,6 @@ export default function CustomerDashboard() {
   useEffect(() => {
     const fetchDashboardMetrics = async () => {
       if (status !== "authenticated") return;
-
       setLoading(true);
       try {
         const token = session?.user?.access_token;
@@ -89,8 +88,12 @@ export default function CustomerDashboard() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto mt-10 px-4 bg-white">
-      <h1 className="text-3xl font-bold mb-8 text-green-900">Customer Dashboard</h1>
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="bg-gradient-to-r from-green-600 to-green-500 rounded-lg p-8 text-white shadow-lg">
+        <h1 className="text-4xl font-bold mb-2">Welcome, {session?.user?.username}! 👋</h1>
+        <p className="text-green-100">Customer Dashboard</p>
+      </div>
 
       {/* Metrics Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">

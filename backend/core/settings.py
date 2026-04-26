@@ -98,27 +98,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-import os
+# import os
 
-if os.environ.get("USE_SQLITE", "1") == "1":
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
-else:
-    import dj_database_url
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=os.environ.get("postgresql://postgres:Napfar-2cymzo-roshub@db.nsutmhpqcorwyvzeyrpj.supabase.co:5432/postgres"),
-            conn_max_age=600,
-            ssl_require=True
-        )
-    }
+# if os.environ.get("USE_SQLITE", "1") == "1":
+#     DATABASES = {
+#         "default": {
+#             "ENGINE": "django.db.backends.sqlite3",
+#             "NAME": BASE_DIR / "db.sqlite3",
+#         }
+#     }
+# else:
+#     import dj_database_url
+#     DATABASES = {
+#         "default": dj_database_url.config(
+#             default=os.environ.get("postgresql://postgres:Napfar-2cymzo-roshub@db.nsutmhpqcorwyvzeyrpj.supabase.co:5432/postgres"),
+#             conn_max_age=600,
+#             ssl_require=True
+#         )
+#     }
 
 
-# import dj_database_url
+import dj_database_url
 # import os
 
 # DATABASES = {
@@ -132,9 +132,10 @@ else:
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': dj_database_url.config(default='postgresql://postgres:Napfar-2cymzo-roshub@db.nsutmhpqcorwyvzeyrpj.supabase.co:5432/postgres')
-# }
+DATABASES = {
+    'default': dj_database_url.config(default='postgresql://postgres:Napfar-2cymzo-roshub@db.nsutmhpqcorwyvzeyrpj.supabase.co:5432/postgres')
+}
+
 #DATABASES = {
 #    'default': {
 #        'ENGINE': 'django.db.backends.sqlite3',

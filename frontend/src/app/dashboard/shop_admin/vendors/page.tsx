@@ -22,7 +22,7 @@ export default function ManageVendors() {
     const fetchVendors = async () => {
       try {
         // 3. Use Environment Variable for production
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL}`;
         const res = await fetch(`${baseUrl}/api/vendors/`, {
           headers: {
             Authorization: `Bearer ${session?.user?.access_token}`,
@@ -48,7 +48,7 @@ export default function ManageVendors() {
 
   const toggleVendorStatus = async (userId: number) => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL}`;
       const res = await fetch(`${baseUrl}/api/vendors/${userId}/block_restore/`, {
         method: "POST",
         headers: {
@@ -74,12 +74,12 @@ export default function ManageVendors() {
 
   return (
     <div className="space-y-8">
-      <div className="bg-blue-600 rounded-lg p-8 shadow-lg">
+      <div className="bg-gradient-to-r from-green-600 to-green-500 rounded-lg p-8 text-white shadow-lg">
         <h1 className="text-5xl font-extrabold mb-4 text-white">Manage Vendors</h1>
         <p className="text-2xl font-semibold text-blue-100">Total Vendors: {totalVendors}</p>
       </div>
 
-      <div className="bg-gray-100 p-6 rounded-lg border border-gray-300 shadow">
+      <div className="bg-gray-300 p-6 rounded-lg border border-gray-300 shadow">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-300">

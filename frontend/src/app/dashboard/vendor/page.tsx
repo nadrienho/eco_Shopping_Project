@@ -22,7 +22,7 @@ export default function VendorDashboard() {
     // Fetch products for the logged-in vendor
     const fetchTotalProducts = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/products/vendor/", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/vendor/`, {
           headers: {
             Authorization: `Bearer ${session?.user?.access_token}`,
           },
@@ -38,9 +38,7 @@ export default function VendorDashboard() {
       } catch (error) {
         console.error("Error fetching products:", error);
       } 
-      // finally {
-      //   setLoading(false);
-      // }
+      
     };
 
     if (session?.user?.role === "vendor") {

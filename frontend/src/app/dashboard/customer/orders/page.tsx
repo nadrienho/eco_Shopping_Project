@@ -80,7 +80,9 @@ export default function OrdersPage() {
 
   return (
     <div className="max-w-4xl mx-auto mt-10 px-4 pb-20">
-      <h1 className="text-3xl font-bold mb-8 text-white-900">My Orders</h1>
+      <div className="bg-gradient-to-r from-green-600 to-green-500 rounded-lg p-8 text-white shadow-lg text-center">
+        <h1 className="text-3xl font-bold">My Orders</h1>
+      </div>
 
       {error && (
         <div className="p-4 mb-6 bg-red-50 border border-red-200 rounded-lg">

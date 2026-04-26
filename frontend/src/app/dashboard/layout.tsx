@@ -1,3 +1,4 @@
+// src/app/dashboard/layout.tsx
 "use client";
 
 import Sidebar from "@/components/Sidebar";
@@ -16,9 +17,13 @@ export default function DashboardLayout({
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isValidPath, setIsValidPath] = useState(true);
   const [userRole, setUserRole] = useState<Role>("customer");
+  
+  // New State for Sidebar Collapse
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.role) {
@@ -35,7 +40,8 @@ export default function DashboardLayout({
 
     if (status === "authenticated" && session?.user?.role) {
       const role = session.user.role as Role;
-      const dashboardType = pathname.split("/")[2]; 
+      const pathParts = pathname.split("/");
+      const dashboardType = pathParts[2]; 
 
       if (dashboardType && dashboardType !== role) {
         router.push(`/dashboard/${role}`);
@@ -50,8 +56,8 @@ export default function DashboardLayout({
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin text-4xl mb-4">⏳</div>
-          <p className="text-gray-600">Please wait...</p>
+          <div className="animate-spin text-4xl mb-4 text-green-600">⌛</div>
+          <p className="text-gray-600 font-medium">Authenticating...</p>
         </div>
       </div>
     );
@@ -59,21 +65,26 @@ export default function DashboardLayout({
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header stays at the top */}
+      {/* Header stays at the top. 
+      */}
       <DashboardHeader onSearch={setSearchResults} />
 
       <div className="flex flex-1 relative">
-        {/* SIDEBAR: Since it is 'fixed' in your component, 
-          it doesn't take up space in the flex flow. 
-        */}
-        <Sidebar role={userRole} />
+        <Sidebar 
+          role={userRole} 
+          isCollapsed={isCollapsed} 
+          setIsCollapsed={setIsCollapsed} 
+        />
 
-        {/* MAIN CONTENT: 
-          1. We add 'pl-64' (Padding Left) or 'ml-64' (Margin Left) to push 
-             the content to the right of the 256px fixed sidebar.
-          2. 'w-full' ensures it fills the remaining space.
+        {/* DYNAMIC MARGIN: 
+            ml-64 when open (256px) 
+            ml-20 when collapsed (80px)
         */}
-        <main className="flex-1 ml-64 p-8 overflow-auto bg-gray-50">
+        <main 
+          className={`flex-1 transition-all duration-300 ease-in-out bg-gray-50 p-8 ${
+            isCollapsed ? "ml-20" : "ml-64"
+          }`}
+        >
           <div className="max-w-7xl mx-auto">
             <SearchResults results={searchResults} />
             {children}
