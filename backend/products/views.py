@@ -557,15 +557,34 @@ def create_order(request):
         total_cost=total_cost,
     )
 
-    # Create order items
+    # Create order items and update product stock
     for item in cart_items:
-        product = item["product"]
+        product_data = item["product"]
+        product_id = product_data["id"]
+        quantity = item["quantity"]
+        price = product_data["price"]
+
+        # Fetch the product instance
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return Response({"error": f"Product with id {product_id} does not exist."}, status=400)
+
+        # Check if enough stock is available
+        if product.stock < quantity:
+            return Response({"error": f"Not enough stock for product {product.name}."}, status=400)
+
+        # Create the order item
         OrderItem.objects.create(
             order=order,
-            product_id=product["id"],
-            price=product["price"],
-            quantity=item["quantity"],
+            product=product,
+            price=price,
+            quantity=quantity,
         )
+
+        # Subtract the ordered quantity from stock and save
+        product.stock -= quantity
+        product.save()
 
     # Clear the user's cart
     CartItem.objects.filter(cart__user=user).delete()
