@@ -1,56 +1,54 @@
-import { withAuth } from "next-auth/middleware";
+// middleware.ts
 import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
+import type { Role } from "./auth"; // or wherever you export Role
 
-// 1. Define the Role-to-Route mapping
-const roleRoutes: Record<string, string[]> = {
-  customer: ["/dashboard/customer", "/checkout"],
-  vendor: ["/dashboard/vendor", "/vendor"],
-  admin: ["/dashboard/admin", "/admin"],
+const roleRoutes: Record<Role, string[]> = {
+  customer:   ["/dashboard/customer", "/checkout"],
+  vendor:     ["/dashboard/vendor", "/vendor"],
+  shop_admin: ["/dashboard/admin", "/admin"],   // ← was "admin", now "shop_admin"
 };
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const pathname = req.nextUrl.pathname;
+export async function middleware(req) {
+  const pathname = req.nextUrl.pathname;
 
-    // The 'withAuth' authorized callback already ensures 'token' exists here
-    const userRole = (token?.role as string) || "customer";
-    const allowedRoutes = roleRoutes[userRole] || [];
+  const isProtected =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/vendor") ||
+    pathname.startsWith("/admin") ||
+    pathname === "/checkout";
 
-    /**
-     * LOGIC: Check if the current path is allowed for this role.
-     * We check if the path starts with any of the allowed prefixes for that user.
-     */
-    const isAllowed = allowedRoutes.some((route) => pathname.startsWith(route));
+  if (!isProtected) return NextResponse.next();
 
-    // If the user is trying to access a restricted area they aren't allowed in
-    if (pathname.startsWith("/dashboard") || 
-        pathname.startsWith("/vendor") || 
-        pathname.startsWith("/admin")) {
-      
-      if (!isAllowed) {
-        // Redirect them to their own dashboard or home
-        const fallback = roleRoutes[userRole]?.[0] || "/";
-        return NextResponse.redirect(new URL(fallback, req.url));
-      }
-    }
-
+  if (!process.env.NEXTAUTH_SECRET) {
+    console.warn("NEXTAUTH_SECRET is not set.");
     return NextResponse.next();
-  },
-  {
-    callbacks: {
-      // This ensures the middleware code only runs if the user is logged in
-      authorized: ({ token }) => !!token,
-    },
   }
-);
 
-// 2. Define which paths trigger this middleware
-export const config = { 
-  matcher: [
-    "/dashboard/:path*", 
-    "/vendor/:path*", 
-    "/admin/:path*", 
-    "/checkout"
-  ] 
+  let token;
+  try {
+    token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  } catch (err) {
+    console.error("getToken error:", err);
+    return NextResponse.next();
+  }
+
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  const userRole = (token.role as Role) || "customer";
+  const allowedPrefixes = roleRoutes[userRole] || [];
+  const isAllowed = allowedPrefixes.some((prefix) => pathname.startsWith(prefix));
+
+  if (!isAllowed) {
+    const fallback = allowedPrefixes[0] || "/";
+    return NextResponse.redirect(new URL(fallback, req.url));
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/dashboard/:path*", "/vendor/:path*", "/admin/:path*", "/checkout"],
 };

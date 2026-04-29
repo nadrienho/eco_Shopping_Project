@@ -30,11 +30,17 @@ export default function CustomerDashboard() {
 
   useEffect(() => {
     const fetchDashboardMetrics = async () => {
-      if (status !== "authenticated") return;
+      if (status !== "authenticated" || !session) return;
+      
       setLoading(true);
       try {
-        const token = session?.user?.access_token;
+        // Match the property name exactly as defined in your session callback
+        const token = (session.user as any)?.access_token; 
 
+        if (!token) {
+          console.error("No access token found in session");
+          return;
+        }
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/`, {
           headers: {
             Authorization: `Bearer ${token}`,
