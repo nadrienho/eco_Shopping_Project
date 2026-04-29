@@ -14,6 +14,7 @@ from rest_framework.filters import OrderingFilter
 from django.http import QueryDict
 from django.db.models import Sum, F
 from django.db.models.functions import TruncMonth
+from django.shortcuts import get_object_or_404
 
 
 class ProductListView(ListAPIView):
@@ -687,6 +688,26 @@ def customer_dashboard(request):
         "co2_savings_over_time": list(co2_savings_over_time),
         "recent_purchases": recent_purchases,
     }, status=200)
+
+class VendorProductListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        products = Product.objects.filter(vendor=request.user)
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+
+class VendorProductStockUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        product = get_object_or_404(Product, pk=pk, vendor=request.user)
+        stock = request.data.get("stock")
+        if stock is not None and isinstance(stock, int):
+            product.stock = stock
+            product.save()
+            return Response({"success": True, "stock": product.stock})
+        return Response({"error": "Invalid stock value"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
