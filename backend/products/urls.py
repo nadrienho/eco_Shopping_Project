@@ -1,8 +1,8 @@
 from django.urls import path
 from .views import ProductListView, UserDetailView, RegisterView, block_or_restore_vendor, clear_cart, create_order, customer_dashboard, get_categories, get_saved_products, update_cart_item_quantity, view_cart, add_to_cart, view_orders
-from .views import get_all_customers, block_or_restore_customer, get_all_vendors, block_or_restore_vendor, create_product, get_vendor_products
-from .views import VendorProductListView, VendorProductStockUpdateView
-
+from .views import get_all_customers, block_or_restore_customer, get_all_vendors, block_or_restore_vendor, create_product, get_vendor_products, PendingProductListView
+from .views import VendorProductListView, VendorProductStockUpdateView, VendorOrderItemListView, VendorOrderItemStatusUpdateView, PendingProductDetailView, ProductMetricApprovalView
+from .views import ShopAdminProductListView, ProductDetailView
 
 urlpatterns = [
     path('products/', ProductListView.as_view(), name='product-list'),
@@ -26,4 +26,11 @@ urlpatterns = [
     path("dashboard/", customer_dashboard, name="customer_dashboard"),
     path("vendor/products/", VendorProductListView.as_view(), name="vendor-products"),
     path("vendor/products/<int:pk>/stock/", VendorProductStockUpdateView.as_view(), name="vendor-product-stock-update"),
+    path("vendor/order-items/", VendorOrderItemListView.as_view(), name="vendor-order-items"),
+    path("vendor/order-items/<int:pk>/status/", VendorOrderItemStatusUpdateView.as_view(), name="vendor-order-item-status-update"),
+    path('shop_admin/pending_products/', PendingProductListView.as_view(), name='pending_products'),
+    path('shop-admin/pending-products/<int:pk>/', PendingProductDetailView.as_view()),
+    path('shop-admin/pending-products/<int:pk>/approve/', ProductMetricApprovalView.as_view()),
+    path('shop_admin/products/', ShopAdminProductListView.as_view(), name='shop-admin-products'),
+    path('products/<int:pk>/', ProductDetailView.as_view(), name='product-detail'),
 ]

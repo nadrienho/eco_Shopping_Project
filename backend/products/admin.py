@@ -9,12 +9,18 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'category', 'stock', 'price', 'get_eco_score')
-    list_filter = ('category',)  # Allows filtering by category in the sidebar
+    list_filter = ('category', 'status')  # Allows filtering by category and status in the sidebar
 
     def get_eco_score(self, obj):
         return obj.eco_score
 
     get_eco_score.short_description = 'Eco Score'
+
+    actions = ['approve_products']
+
+    def approve_products(self, request, queryset):
+        queryset.update(status='verified')
+    approve_products.short_description = "Mark selected products as verified"
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):

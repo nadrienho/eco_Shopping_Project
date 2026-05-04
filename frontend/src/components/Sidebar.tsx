@@ -25,9 +25,9 @@ const menuOptions: Record<Role, { label: string; href: string; icon: string }[]>
   ],
   vendor: [
     { label: "Dashboard", href: "/dashboard/vendor", icon: "📊" },
-    { label: "My Products", href: "/dashboard/vendor/products", icon: "🛍️" },
+    { label: "Product Management", href: "/dashboard/vendor/products", icon: "🛍️" },
     { label: "Stock Management", href: "/dashboard/vendor/stock", icon: "📦" },
-    { label: "Orders", href: "/dashboard/vendor/orders", icon: "📋" },
+    { label: "Order Management", href: "/dashboard/vendor/orders", icon: "📋" },
     { label: "Certifications", href: "/dashboard/vendor/certifications", icon: "✅" },
   ],
   customer: [

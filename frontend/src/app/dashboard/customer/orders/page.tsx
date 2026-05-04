@@ -105,7 +105,7 @@ export default function OrdersPage() {
                     {new Date(order.created_at).toLocaleDateString()} at {new Date(order.created_at).toLocaleTimeString()}
                   </p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getStatusColor(order.status)} bg-opacity-10 bg-current`}>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getStatusColor(order.status)} bg-opacity-100 bg-yellow-50`}>
                   {order.status}
                 </span>
               </div>

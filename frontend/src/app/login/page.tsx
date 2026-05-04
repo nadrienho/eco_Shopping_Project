@@ -29,7 +29,7 @@ function LoginContent() {
       const roleRedirects: Record<string, string> = {
         customer: "/dashboard/customer",
         vendor: "/dashboard/vendor",
-        shop_admin: "/dashboard/admin", // ✅ fixed key
+        shop_admin: "/dashboard/shop_admin", // ✅ fixed key
       };
       const redirectUrl =
         roleRedirects[session.user.role] ?? "/dashboard/customer";
@@ -66,7 +66,7 @@ function LoginContent() {
       const roleRedirects: Record<string, string> = {
         customer: "/dashboard/customer",
         vendor: "/dashboard/vendor",
-        shop_admin: "/dashboard/admin",
+        shop_admin: "/dashboard/shop_admin",
       };
 
       router.push(roleRedirects[role ?? "customer"] ?? "/dashboard/customer");

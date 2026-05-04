@@ -11,6 +11,27 @@ interface Product {
   description: string;
   price: string | number; // Handling both just in case
   stock: number;
+  status: string;
+}
+
+const FILTER_OPTIONS = [
+  { label: "All Products", value: "all" },
+  { label: "Pending", value: "pending" },
+  { label: "Verified", value: "verified" },
+  { label: "Rejected", value: "rejected" },
+];
+
+function getStatusColor(status: string) {
+  switch (status) {
+    case "verified":
+      return "bg-green-100 text-green-800";
+    case "pending":
+      return "bg-yellow-100 text-yellow-800";
+    case "rejected":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
 }
 
 export default function VendorProducts() {
@@ -18,17 +39,20 @@ export default function VendorProducts() {
   
   // 2. Properly type the state to avoid 'never[]'
   const [products, setProducts] = useState<Product[]>([]);
-  
+  const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // 3. Use Environment Variable for the live site
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL}`;
-        
-        const res = await fetch(`${API_BASE_URL}/api/products/vendor/`, {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+        let url = `${API_BASE_URL}/api/vendor/products/`;
+        if (filter === "verified") url += "?status=verified";
+        else if (filter === "pending") url += "?status=pending";
+        else if (filter === "rejected") url += "?status=rejected";
+
+        const res = await fetch(url, {
           headers: {
             Authorization: `Bearer ${session?.user?.access_token}`,
           },
@@ -52,7 +76,7 @@ export default function VendorProducts() {
     if (session?.user?.role === "vendor") {
       fetchProducts();
     }
-  }, [session]);
+  }, [session, filter]); 
 
   if (loading) {
     return (
@@ -75,6 +99,20 @@ export default function VendorProducts() {
         </button>
       </div>
 
+      <div className="flex justify-end mb-4">
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="border rounded px-3 py-2 text-gray-700"
+        >
+          {FILTER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {products.length > 0 ? (
         <table className="w-full border-collapse border border-gray-300">
           <thead>
@@ -83,6 +121,8 @@ export default function VendorProducts() {
               <th className="border border-gray-300 px-4 py-2 text-left text-gray-600">Description</th>
               <th className="border border-gray-300 px-4 py-2 text-left text-gray-600">Price</th>
               <th className="border border-gray-300 px-4 py-2 text-left text-gray-600">Stock</th>
+              <th className="border border-gray-300 px-4 py-2 text-left text-gray-600">Stock Status</th>
+              <th className="border border-gray-300 px-4 py-2 text-left text-gray-600">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -90,8 +130,21 @@ export default function VendorProducts() {
               <tr key={product.id} className="hover:bg-gray-100">
                 <td className="border border-gray-300 px-4 py-2 font-medium text-gray-600">{product.name}</td>
                 <td className="border border-gray-300 px-4 py-2 text-gray-600">{product.description}</td>
-                <td className="border border-gray-300 px-4 py-2 text-gray-600">${product.price}</td>
+                <td className="border border-gray-300 px-4 py-2 text-gray-600">£{product.price}</td>
                 <td className="border border-gray-300 px-4 py-2 text-gray-600">{product.stock}</td>
+                
+                <td className="border border-gray-300 px-4 py-2 text-gray-600">{product.stock > 5 ? (
+                  <span className="text-green-600 font-semibold">In Stock</span>
+                ) : product.stock > 0 ? (
+                  <span className="text-yellow-600 font-semibold">Low Stock</span>
+                ) : (
+                  <span className="text-red-600 font-semibold">Out of Stock</span>
+                )}</td>
+                <td className="border-b py-2 px-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getStatusColor(product.status)}`}>
+                            {product.status}
+                        </span>
+                </td>
               </tr>
             ))}
           </tbody>

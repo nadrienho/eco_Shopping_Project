@@ -81,7 +81,7 @@ export default function CustomerDashboard() {
 
   // Prepare data for the bar chart
   const barChartData = {
-    labels: metrics.co2_savings_over_time.map((entry) => entry.month),
+    labels: metrics.co2_savings_over_time.map((entry) => entry.month), // Use month instead of day
     datasets: [
       {
         label: "CO2 Savings (kg)",
@@ -91,6 +91,34 @@ export default function CustomerDashboard() {
         borderWidth: 1,
       },
     ],
+  };
+
+
+  const barChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        display: true,
+      },
+      title: {
+        display: false,
+      },
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: "Day", // X-axis label
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: "CO₂ Savings (kg)",
+        },
+        beginAtZero: true,
+      },
+    },
   };
 
   return (
@@ -120,7 +148,7 @@ export default function CustomerDashboard() {
       {/* CO2 Savings Over Time */}
       <div className="mb-10 bg-white p-6 border border-green-300 rounded-lg shadow">
         <h2 className="text-xl font-bold mb-4 text-black">CO2 Savings Over Time</h2>
-        <Bar data={barChartData} />
+        <Bar data={barChartData} options={barChartOptions} />
       </div>
 
       {/* Recent Purchases */}

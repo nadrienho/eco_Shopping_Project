@@ -32,6 +32,11 @@ class Category(models.Model):
         return self.name
 
 class Product(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('verified', 'Verified'),
+        ('rejected', 'Rejected'),
+    ]
     MATERIAL_CHOICES = [
         ("recycled_polyester", "Recycled Polyester"),
         ("virgin_polyester", "Virgin Polyester"),
@@ -70,6 +75,9 @@ class Product(models.Model):
     co2_baseline = models.FloatField(default=0.0)  # Baseline CO2 emissions
     actual_co2 = models.FloatField(default=0.0)  # Actual CO2 emissions
     co2_saved = models.FloatField(default=0.0)  # CO2 saved
+
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
+    image = models.ImageField(upload_to="products/", null=True, blank=True)
 
     def calculate_co2_baseline(self):
         """
@@ -276,6 +284,7 @@ class SavedProduct(models.Model):
 class Order(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
+        ('processing', 'Processing'),
         ('shipped', 'Shipped'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
@@ -295,6 +304,20 @@ class Order(models.Model):
     # This field is key for your Eco-Shop metrics!
     total_carbon_impact = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
+    def update_status_from_items(self):
+        item_statuses = list(self.items.values_list('status', flat=True))
+        if all(s == 'delivered' for s in item_statuses):
+            self.status = 'delivered'
+        elif all(s == 'cancelled' for s in item_statuses):
+            self.status = 'cancelled'
+        elif any(s == 'shipped' for s in item_statuses):
+            self.status = 'shipped'
+        elif any(s == 'processing' for s in item_statuses):
+            self.status = 'processing'
+        else:
+            self.status = 'pending'
+        self.save(update_fields=['status'])
+
     @property
     def total_price(self):
         # This calculates the total on the fly based on related order items
@@ -304,10 +327,23 @@ class Order(models.Model):
         return f"Order {self.id} by {self.user.username}"
 
 class OrderItem(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+    ]
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    price = models.DecimalField(max_digits=10, decimal_places=2) # Price at the time of purchase
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')  # <-- Add this line
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # After saving, update the parent order status
+        self.order.update_status_from_items()
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"

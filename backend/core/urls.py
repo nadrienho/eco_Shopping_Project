@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path,include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from products.views import UserMeView
+from django.conf import settings
+from django.conf.urls.static import static  
 
 
 urlpatterns = [
@@ -27,4 +29,8 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/user/me/', UserMeView.as_view(), name='user-me'),
     path("api/products/", include("products.urls")),  # Include the products app's URLs
-]
+    
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,12 +1,12 @@
 from rest_framework import generics, viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
 from django.contrib.auth.models import User
 from .models import Product, Profile, Category, Cart, CartItem, Order, OrderItem, SavedProduct
-from .serializers import ProductSerializer, UserSerializer, UserMeSerializer, ProfileSerializer, CategorySerializer
+from .serializers import ProductSerializer, UserSerializer, UserMeSerializer, ProfileSerializer, CategorySerializer, OrderItemSerializer
 from .permissions import IsVendorOrReadOnly
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -18,7 +18,7 @@ from django.shortcuts import get_object_or_404
 
 
 class ProductListView(ListAPIView):
-    queryset = Product.objects.all()
+    queryset = Product.objects.filter(status='verified')  # Only show verified products in the list
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = {
@@ -32,7 +32,7 @@ class ProductListView(ListAPIView):
         return super().get_queryset()
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.filter(status='verified')  # Only show verified products in the list
     serializer_class = ProductSerializer
     permission_classes = [IsVendorOrReadOnly]
 
@@ -184,14 +184,19 @@ class RegisterView(APIView):
                 password=password
             )
             user.role = role  # Attach the role to the user instance
+
+            # Set is_staff=True for shop_admins
+            if role == "shop_admin":
+                user.is_staff = True
+
             user.save()
 
             # Explicitly create the profile with the correct role
             profile = Profile.objects.create(
                 user=user,
                 role=role,
-                shop_name=shop_name if role in ["vendor", "shop_admin"] else None,
-                bio=bio if role in ["vendor", "shop_admin"] else None,
+                shop_name=shop_name if role == "vendor" else None,
+                bio=bio if role == "vendor" else None,
             )
             
             return Response(
@@ -309,68 +314,67 @@ def block_or_restore_vendor(request, user_id):
 @permission_classes([IsAuthenticated])
 def create_product(request):
     """
-    Create a new product
+    Create a new product (with image upload) – vendors only.
     """
     user = request.user
 
-    # Ensure only vendors can create products
-    if not user.profile.role == "vendor":
+    # Restrict to vendors
+    if getattr(user.profile, "role", None) != "vendor":
         return Response({"error": "Only vendors can create products."}, status=403)
 
-    # Extract product data from the request
-    name = request.data.get("name")
-    description = request.data.get("description")
-    price = request.data.get("price")
-    stock = request.data.get("stock")
-    category_id = request.data.get("category")
-    weight = request.data.get("weight", 2.0)
-    material_type = request.data.get("material_type")
-    transport_distance = request.data.get("transport_distance", 2.0)
-    transport_mode = request.data.get("transport_mode", "truck")
-    energy_usage = request.data.get("energy_usage", 2.0)
-    grid_intensity = request.data.get("grid_intensity", 0.2)
-    longevity = request.data.get("longevity", 50)
+    data = request.data
+    image = request.FILES.get("image")           # ✅ the uploaded file object
 
-    # Validate required fields
-    if not all([name, price, stock, category_id, material_type, transport_mode]):
+    name = data.get("name")
+    description = data.get("description")
+    material_type = data.get("material_type")
+    transport_mode = data.get("transport_mode")
+    category_id = data.get("category")
+
+    # convert numerics safely
+    try:
+        price = float(data.get("price", 0))
+        stock = int(data.get("stock", 0))
+        weight = float(data.get("weight", 0))
+        energy_usage = float(data.get("energy_usage", 0))
+        longevity = float(data.get("longevity", 0))
+        transport_distance = float(data.get("transport_distance", 2.0))
+        grid_intensity = float(data.get("grid_intensity", 0.2))
+    except (ValueError, TypeError):
+        return Response({"error": "Invalid numeric value."}, status=400)
+
+    # simple validation
+    if not all([name, description, price, stock, category_id, material_type, transport_mode]):
         return Response({"error": "Missing required fields."}, status=400)
 
+    valid_materials = {
+        "recycled_polyester", "virgin_polyester", "organic_cotton",
+        "conventional_cotton", "linen", "hemp", "wool", "nylon", "silk",
+        "recycled_cardboard", "virgin_paper", "recycled_plastic_pet",
+        "virgin_plastic_pet", "bioplastic_pla", "glass", "aluminum_recycled",
+        "aluminum_virgin", "steel", "copper", "lithium_ion_battery",
+        "bamboo", "cork", "hardwood_timber", "concrete",
+    }
+    valid_modes = {"air", "truck", "sea"}
 
-    # Validate material_type and transport_mode
-    valid_material_types = [
-        "recycled_polyester", "virgin_polyester", "organic_cotton", "conventional_cotton",
-        "linen", "hemp", "wool", "nylon", "silk", "recycled_cardboard", "virgin_paper",
-        "recycled_plastic_pet", "virgin_plastic_pet", "bioplastic_pla", "glass",
-        "aluminum_recycled", "aluminum_virgin", "steel", "copper", "lithium_ion_battery",
-        "bamboo", "cork", "hardwood_timber", "concrete"
-    ]
-    valid_transport_modes = ["air", "truck", "sea"]
-
-    if material_type not in valid_material_types:
+    if material_type not in valid_materials:
         return Response({"error": "Invalid material type."}, status=400)
-
-    if transport_mode not in valid_transport_modes:
+    if transport_mode not in valid_modes:
         return Response({"error": "Invalid transport mode."}, status=400)
 
-    # Validate the data
-    if not name or not price or not stock:
-        return Response(
-            {"error": "Name, price, stock and category are required fields."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    try:
+        category = Category.objects.get(pk=category_id)
+    except Category.DoesNotExist:
+        return Response({"error": "Invalid category ID."}, status=400)
 
     try:
-        # Fetch the category
-        category = Category.objects.get(id=category_id)
-        
-        # Create the product
         product = Product.objects.create(
             name=name,
             description=description,
             price=price,
             stock=stock,
-            category=category,  # Associate the product with the selected category
-            vendor=user,  # Associate the product with the logged-in vendor
+            category=category,
+            vendor=user,
             weight=weight,
             material_type=material_type,
             transport_distance=transport_distance,
@@ -378,15 +382,20 @@ def create_product(request):
             energy_usage=energy_usage,
             grid_intensity=grid_intensity,
             longevity=longevity,
+            image=image,                 # ✅ correctly saved file
+            status="pending",
         )
+        serializer = ProductSerializer(product)
         return Response(
-            {"message": "Product created successfully.", "product": ProductSerializer(product).data},
+            {"message": "Product created successfully", "product": serializer.data},
             status=status.HTTP_201_CREATED,
         )
-    except Category.DoesNotExist:
-        return Response({"error": "Invalid category ID."}, status=400)
+
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # print real error to debug
+        import traceback; traceback.print_exc()
+        return Response({"error": str(e)}, status=500)
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -689,13 +698,17 @@ def customer_dashboard(request):
         "recent_purchases": recent_purchases,
     }, status=200)
 
-class VendorProductListView(APIView):
+class VendorProductListView(ListAPIView):
+    serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        products = Product.objects.filter(vendor=request.user)
-        serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        user = self.request.user
+        status_param = self.request.GET.get("status")
+        qs = Product.objects.filter(vendor=user)
+        if status_param and status_param != "all":
+            qs = qs.filter(status=status_param)
+        return qs
 
 class VendorProductStockUpdateView(APIView):
     permission_classes = [IsAuthenticated]
@@ -708,6 +721,99 @@ class VendorProductStockUpdateView(APIView):
             product.save()
             return Response({"success": True, "stock": product.stock})
         return Response({"error": "Invalid stock value"}, status=status.HTTP_400_BAD_REQUEST)
+
+class VendorOrderListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Get all orders for products owned by this vendor
+        products = Product.objects.filter(vendor=request.user)
+        orders = Order.objects.filter(product__in=products)
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
+
+class VendorOrderStatusUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        order = get_object_or_404(Order, pk=pk, product__vendor=request.user)
+        status_value = request.data.get("status")
+        if status_value not in ["pending", "processing", "shipped", "delivered", "cancelled"]:
+            return Response({"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
+        order.status = status_value
+        order.save()
+        return Response({"success": True, "status": order.status})
+    
+class VendorOrderItemListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        print("User:", request.user)
+        items = OrderItem.objects.filter(product__vendor=request.user)
+        print("Items:", items)
+        serializer = OrderItemSerializer(items, many=True)
+        print("Serialized:", serializer.data)
+        return Response(serializer.data)
+
+class VendorOrderItemStatusUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        item = get_object_or_404(OrderItem, pk=pk, product__vendor=request.user)
+        status_value = request.data.get("status")
+        if status_value not in dict(OrderItem.STATUS_CHOICES):
+            return Response({"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
+        item.status = status_value
+        item.save()
+        return Response({"success": True, "status": item.status})
+
+class PendingProductListView(ListAPIView):
+    queryset = Product.objects.filter(status="pending")
+    serializer_class = ProductSerializer
+    permission_classes = [IsAdminUser]
+
+class PendingProductDetailView(RetrieveAPIView):
+    queryset = Product.objects.filter(status="pending")
+    serializer_class = ProductSerializer
+    permission_classes = [IsAdminUser]
+
+class ProductMetricApprovalView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, pk):
+        product = Product.objects.get(pk=pk)
+        approvals = request.data.get("approvals", {})
+        # approvals = { "name": true, "description": true, ... }
+
+        if not all(approvals.values()):
+            product.status = "rejected"
+        else:
+            product.status = "verified"
+        product.save()
+        return Response({"status": product.status})
+    
+class ShopAdminProductListView(ListAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        status = self.request.GET.get("status")
+        qs = Product.objects.all()
+        if status in ["pending", "verified", "rejected"]:
+            qs = qs.filter(status=status)
+        return qs
+
+class ProductDetailView(RetrieveAPIView):
+    """
+    Retrieve product details by ID.
+    Endpoint: GET /api/products/<int:pk>/
+    """
+    queryset = Product.objects.filter(status='verified')  # Only verified products are visible
+    serializer_class = ProductSerializer
+    permission_classes = [AllowAny]
+
+
+
 
 
 

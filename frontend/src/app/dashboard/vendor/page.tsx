@@ -8,7 +8,8 @@ import { useEffect, useState } from "react";
 export default function VendorDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [totalProducts, setTotalProducts] = useState(0); // State to store total products
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalSales, setTotalSales] = useState(0);
 
   // Redirect if not authenticated or not a vendor
   useEffect(() => {
@@ -17,12 +18,11 @@ export default function VendorDashboard() {
     }
   }, [status, session, router]);
 
-
   useEffect(() => {
     // Fetch products for the logged-in vendor
     const fetchTotalProducts = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/vendor/`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vendor/products/?status=verified`, {
           headers: {
             Authorization: `Bearer ${session?.user?.access_token}`,
           },
@@ -34,15 +34,46 @@ export default function VendorDashboard() {
         }
 
         const data = await res.json();
-        setTotalProducts(data.products.length);
+        setTotalProducts(Array.isArray(data) ? data.length : (data.products?.length || 0));
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  if (session?.user?.role === "vendor") {
+    fetchTotalProducts();
+  }
+}, [session]);
+
+  // Fetch and calculate total sales
+  useEffect(() => {
+    const fetchTotalSales = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vendor/order-items/`, {
+          headers: {
+            Authorization: `Bearer ${session?.user?.access_token}`,
+          },
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || "Failed to fetch order items");
+        }
+
+        const items = await res.json();
+        // Calculate total sales: sum of price * quantity for all items
+        const total = items.reduce(
+          (sum: number, item: any) => sum + parseFloat(item.price) * item.quantity,
+          0
+        );
+        setTotalSales(total);
       } catch (error) {
-        console.error("Error fetching products:", error);
-      } 
-      
+        console.error("Error fetching order items:", error);
+      }
     };
 
     if (session?.user?.role === "vendor") {
-      fetchTotalProducts();
+      fetchTotalSales();
     }
   }, [session]);
 
@@ -69,7 +100,7 @@ export default function VendorDashboard() {
         <div className="bg-white p-6 rounded-lg border border-gray-200 shadow hover:shadow-lg transition">
           <div className="text-4xl mb-2">💰</div>
           <h3 className="text-lg font-semibold text-gray-900">Total Sales</h3>
-          <p className="text-3xl font-bold text-green-600 mt-2">$0</p>
+          <p className="text-3xl font-bold text-green-600 mt-2">£{totalSales.toFixed(2)}</p>
         </div>
 
         <div className="bg-white p-6 rounded-lg border border-gray-200 shadow hover:shadow-lg transition">
