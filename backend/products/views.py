@@ -1,3 +1,4 @@
+import os
 from rest_framework import generics, viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -15,6 +16,14 @@ from django.http import QueryDict
 from django.db.models import Sum, F
 from django.db.models.functions import TruncMonth
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.core.mail import send_mail
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
+
+
 
 
 class ProductListView(ListAPIView):
@@ -811,6 +820,57 @@ class ProductDetailView(RetrieveAPIView):
     queryset = Product.objects.filter(status='verified')  # Only verified products are visible
     serializer_class = ProductSerializer
     permission_classes = [AllowAny]
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def password_reset(request):
+    email = request.data.get("email")
+    if not email:
+        return Response({"error": "Email is required"}, status=400)
+    # Always pretend success
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response({"message": "If that email exists, a reset link has been sent."}, status=200)
+    # Correct UID and token
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    # Use NEXTAUTH_URL from .env
+    frontend_url = os.getenv("NEXTAUTH_URL", "http://localhost:3000")
+    reset_url = f"{frontend_url}/reset-password/{uid}/{token}"
+    send_mail(
+        subject="Reset your EcoShop password",
+        message=f"Click the link to reset your password:\n\n{reset_url}\n\nIf you did not request this, ignore this email.",
+        from_email=None,  # uses DEFAULT_FROM_EMAIL
+        recipient_list=[email],
+        fail_silently=False,
+    )
+    return Response({"message": "Password reset email sent."}, status=200)
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def password_reset_confirm(request):
+    uid = request.data.get("uid")
+    token = request.data.get("token")
+    new_password = request.data.get("password")
+
+    if not new_password:
+        return Response({"error": "Password is required"}, status=400)
+
+    try:
+        uid = force_str(urlsafe_base64_decode(uid))
+        user = User.objects.get(pk=uid)
+    except Exception:
+        return Response({"error": "Invalid reset link"}, status=400)
+
+    if not default_token_generator.check_token(user, token):
+        return Response({"error": "Invalid or expired token"}, status=400)
+
+    user.set_password(new_password)
+    user.save()
+
+    return Response({"message": "Password reset successful"}, status=200)
+
 
 
 

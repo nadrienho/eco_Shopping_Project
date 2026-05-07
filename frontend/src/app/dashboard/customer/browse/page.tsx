@@ -141,7 +141,7 @@ export default function BrowseProductsPage() {
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
           >
             <option value="all">All Categories</option>
             {categories.map((c) => (
@@ -159,7 +159,7 @@ export default function BrowseProductsPage() {
           <select
             value={filterPrice}
             onChange={(e) => setFilterPrice(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
           >
             <option value="all">All Prices</option>
             <option value="50">Under £50</option>
@@ -175,7 +175,7 @@ export default function BrowseProductsPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
           >
             <option value="newest">Newest</option>
             <option value="price_low">Price: Low to High</option>

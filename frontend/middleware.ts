@@ -1,16 +1,16 @@
-// middleware.ts
+import { auth } from "@/auth"; // Import the auth function from your auth.ts
 import { NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import type { Role } from "./auth"; // or wherever you export Role
+import type { Role } from "@/auth";
 
 const roleRoutes: Record<Role, string[]> = {
   customer:   ["/dashboard/customer", "/checkout"],
   vendor:     ["/dashboard/vendor", "/vendor"],
-  shop_admin: ["/dashboard/admin", "/admin"],   // ← was "admin", now "shop_admin"
+  shop_admin: ["/dashboard/admin", "/admin"],   
 };
 
-export async function middleware(req) {
+export default auth((req) => {
   const pathname = req.nextUrl.pathname;
+  const { auth: session } = req; // req.auth contains the user session
 
   const isProtected =
     pathname.startsWith("/dashboard") ||
@@ -20,24 +20,13 @@ export async function middleware(req) {
 
   if (!isProtected) return NextResponse.next();
 
-  if (!process.env.NEXTAUTH_SECRET) {
-    console.warn("NEXTAUTH_SECRET is not set.");
-    return NextResponse.next();
-  }
-
-  let token;
-  try {
-    token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  } catch (err) {
-    console.error("getToken error:", err);
-    return NextResponse.next();
-  }
-
-  if (!token) {
+  // If there is no session (token), redirect to login
+  if (!session) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  const userRole = (token.role as Role) || "customer";
+  // Check roles
+  const userRole = (session.user as any)?.role as Role || "customer";
   const allowedPrefixes = roleRoutes[userRole] || [];
   const isAllowed = allowedPrefixes.some((prefix) => pathname.startsWith(prefix));
 
@@ -47,7 +36,7 @@ export async function middleware(req) {
   }
 
   return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: ["/dashboard/:path*", "/vendor/:path*", "/admin/:path*", "/checkout"],

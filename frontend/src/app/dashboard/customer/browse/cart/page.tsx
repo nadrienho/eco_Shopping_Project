@@ -173,7 +173,7 @@ export default function CartPage() {
 
           {/* Total Balance */}
           <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg shadow">
-            <h3 className="text-lg font-bold">Total Balance</h3>
+            <h3 className="text-lg font-bold text-gray-700">Total Balance</h3>
             <p className="text-gray-900 font-bold">${totalBalance.toFixed(2)}</p>
           </div>
 

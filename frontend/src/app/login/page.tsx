@@ -177,6 +177,12 @@ function LoginContent() {
             </button>
           </form>
 
+          <p className="mt-2 text-sm text-center">
+            <a href="/reset-password" className="text-green-600 hover:underline">
+              Forgot password?
+            </a>
+          </p>
+
           <div className="mt-8 pt-6 border-t border-gray-100 text-center text-sm text-gray-600">
             <p>
               Don&apos;t have an account?{" "}

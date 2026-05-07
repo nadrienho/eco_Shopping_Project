@@ -11,6 +11,7 @@ interface Vendor {
   is_active: boolean;
 }
 
+
 export default function ManageVendors() {
   const { data: session } = useSession();
   
@@ -40,8 +41,8 @@ export default function ManageVendors() {
       }
     };
 
-    // Use "admin" or "shop_admin" based on your unified Role type
-    if (session?.user?.role === "shop_admin" || session?.user?.role === "admin") {
+    // Use "shop_admin" role
+    if (session?.user?.role === "shop_admin") {
       fetchVendors();
     }
   }, [session]);

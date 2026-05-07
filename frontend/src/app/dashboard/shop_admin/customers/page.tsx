@@ -40,8 +40,8 @@ export default function ManageCustomers() {
       }
     };
 
-    // Check for 'admin' or 'shop_admin' depending on your unified Role type
-    if (session?.user?.role === "admin" || session?.user?.role === "shop_admin") {
+    // Check for 'shop_admin' role
+    if (session?.user?.role === "shop_admin") {
       fetchCustomers();
     }
   }, [session]);

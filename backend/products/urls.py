@@ -1,8 +1,8 @@
-from django.urls import path
+from django.urls import path, include
 from .views import ProductListView, UserDetailView, RegisterView, block_or_restore_vendor, clear_cart, create_order, customer_dashboard, get_categories, get_saved_products, update_cart_item_quantity, view_cart, add_to_cart, view_orders
 from .views import get_all_customers, block_or_restore_customer, get_all_vendors, block_or_restore_vendor, create_product, get_vendor_products, PendingProductListView
 from .views import VendorProductListView, VendorProductStockUpdateView, VendorOrderItemListView, VendorOrderItemStatusUpdateView, PendingProductDetailView, ProductMetricApprovalView
-from .views import ShopAdminProductListView, ProductDetailView
+from .views import ShopAdminProductListView, ProductDetailView, password_reset, password_reset_confirm
 
 urlpatterns = [
     path('products/', ProductListView.as_view(), name='product-list'),
@@ -33,4 +33,9 @@ urlpatterns = [
     path('shop-admin/pending-products/<int:pk>/approve/', ProductMetricApprovalView.as_view()),
     path('shop_admin/products/', ShopAdminProductListView.as_view(), name='shop-admin-products'),
     path('products/<int:pk>/', ProductDetailView.as_view(), name='product-detail'),
+    path("password_reset/", password_reset, name="password_reset"),
+    path("password_reset_confirm/", password_reset_confirm, name="password_reset_confirm"),
+    #path('api/password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
+
+    
 ]

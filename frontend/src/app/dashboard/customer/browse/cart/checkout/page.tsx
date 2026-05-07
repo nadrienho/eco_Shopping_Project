@@ -121,7 +121,10 @@ export default function CheckoutPage() {
 
   return (
     <div className="max-w-4xl mx-auto mt-10">
-      <h1 className="text-2xl font-bold mb-6">Checkout</h1>
+      <div className="bg-gradient-to-r from-green-600 to-green-500 rounded-lg p-8 text-white shadow-lg text-center">
+        <h1 className="text-3xl font-bold">Checkout</h1>
+        <p className="text-lg mt-2">Review your order and provide shipping details</p>
+      </div>
 
       {/* Order Details */}
       <div className="bg-white space-y-4 p-8 rounded-xl shadow-lg">
@@ -134,12 +137,12 @@ export default function CheckoutPage() {
                 className="flex justify-between items-center border-b border-gray-200 pb-2 mb-2"
               >
                 <div>
-                  <h3 className="text-black-900 font-semibold">{item.product.name}</h3>
-                  <p className="text-black-600">
+                  <h3 className="text-gray-900 font-semibold">{item.product.name}</h3>
+                  <p className="text-gray-600">
                     ${item.product.price.toFixed(2)} x {item.quantity}
                   </p>
                 </div>
-                <p className="text-black-900 font-bold">
+                <p className="text-gray-900 font-bold">
                   ${(item.product.price * item.quantity).toFixed(2)}
                 </p>
               </div>
@@ -160,7 +163,7 @@ export default function CheckoutPage() {
             <p className="text-gray-900 font-bold">${postage.toFixed(2)}</p>
           </div>
           <div className="flex justify-between items-center border-t border-gray-300 pt-4 mt-4">
-            <p className="text-lg font-bold">Order Total</p>
+            <p className="text-lg font-bold text-gray-900">Order Total</p>
             <p className="text-lg font-bold text-green-600">${orderTotal.toFixed(2)}</p>
           </div>
         </div>
@@ -174,42 +177,42 @@ export default function CheckoutPage() {
               placeholder="Full Name"
               value={address.fullName}
               onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700"
             />
             <input
               type="text"
               placeholder="Street Address"
               value={address.street}
               onChange={(e) => setAddress({ ...address, street: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700"
             />
             <input
               type="text"
               placeholder="City"
               value={address.city}
               onChange={(e) => setAddress({ ...address, city: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700"
             />
             <input
               type="text"
               placeholder="Region"
               value={address.region}
               onChange={(e) => setAddress({ ...address, region: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700"
             />
             <input
               type="text"
               placeholder="Post Code"
               value={address.postCode}
               onChange={(e) => setAddress({ ...address, postCode: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700"
             />
             <input
               type="text"
               placeholder="Country"
               value={address.country}
               onChange={(e) => setAddress({ ...address, country: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700"
             />
           </div>
         </div>
@@ -217,7 +220,7 @@ export default function CheckoutPage() {
         {/* Delivery Options */}
         <div className="bg-white p-4 rounded-lg shadow space-y-4">
           <h2 className="text-xl font-bold mb-4 text-green-600">Delivery Options</h2>
-          <div className="space-y-2">
+          <div className="space-y-2 text-gray-700">
             <label className="flex items-center">
               <input
                 type="radio"
@@ -242,7 +245,7 @@ export default function CheckoutPage() {
                   setDeliveryOption(e.target.value);
                   setDeliveryCost(15.0); // Express delivery cost
                 }}
-                className="mr-2"
+                className="mr-2 text-gray-600"
               />
               Express Delivery ($15.00)
             </label>

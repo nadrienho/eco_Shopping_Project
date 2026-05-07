@@ -5,11 +5,10 @@ import SearchBar from "./SearchBar";
 import Link from "next/link";
 
 interface DashboardHeaderProps {
-  onSearch: (results: any[]) => void;
+  onSearch: (results: Product[]) => void;
 }
 
 export default function DashboardHeader({ onSearch }: DashboardHeaderProps) {
-  const { data: session } = useSession();
 
   return (
     <div className="bg-gradient-to-r from-green-600 to-green-500 shadow-md sticky top-0 z-40">

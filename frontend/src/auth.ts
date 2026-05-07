@@ -55,11 +55,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           return {
             id: String(djangoUser.id),
-            name: djangoUser.username,
+            username: djangoUser.username, 
             email: djangoUser.email,
             role: djangoUser.profile.role,
             shop_name: djangoUser.profile.shop_name,
-            accessToken: access,
+            access_token: access,          
+            refresh_token: refresh,
           };
         } catch (err) {
           console.error("Auth error:", err);
@@ -72,10 +73,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         const u = user as any;
-        token.id = Number(u.id);
+        token.id = u.id;
+        token.username = u.username;
         token.role = u.role;
-        token.shop_name = u.shop_name;
-        token.accessToken = u.accessToken;
+        token.accessToken = u.access_token; // Map snake_case from user to camelCase for token
       }
       return token;
     },
@@ -83,7 +84,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     if (session.user) {
         session.user.id = token.id as string;
         session.user.username = token.username as string;
-        session.user.role = token.role as string;
+        session.user.role = token.role as Role;
         session.user.access_token = token.accessToken as string;
         
         // Check your terminal logs to see if this prints a real string
