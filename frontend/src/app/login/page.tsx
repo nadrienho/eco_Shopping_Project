@@ -46,31 +46,31 @@ function LoginContent() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
     try {
       const result = await signIn("credentials", {
         username,
         password,
         redirect: false,
       });
-
       if (result?.error) {
         setError("Invalid username or password");
         return;
       }
-
-      // ✅ Fetch fresh session to get the role, then redirect
-      const session = await getSession();
-      const role = session?.user?.role;
-
+      const freshSession = await getSession();
+      const role = freshSession?.user?.role;
+      // Store access token from NextAuth session if available
+      if (freshSession?.user?.access_token) {
+        localStorage.setItem("access", freshSession.user.access_token);
+      }
+      if (freshSession?.user?.refresh_token) {
+        localStorage.setItem("refresh", freshSession.user.refresh_token);
+      }
       const roleRedirects: Record<string, string> = {
         customer: "/dashboard/customer",
         vendor: "/dashboard/vendor",
         shop_admin: "/dashboard/shop_admin",
       };
-
-      router.push(roleRedirects[role ?? "customer"] ?? "/dashboard/customer");
-
+      router.replace(roleRedirects[role ?? "customer"] ?? "/dashboard/customer");
     } catch (err) {
       setError("An error occurred. Please try again.");
     } finally {

@@ -30,7 +30,7 @@ export default function OrdersPage() {
 
       setLoading(true);
       try {
-        const token = session?.user?.access_token;
+        const token = session?.accessToken;
 
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders/view/`, {
           headers: {

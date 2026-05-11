@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
-// 1. Define the Vendor interface to stop the "type never" error
 interface Vendor {
   id: number;
   username: string;
@@ -11,29 +10,29 @@ interface Vendor {
   is_active: boolean;
 }
 
-
 export default function ManageVendors() {
   const { data: session } = useSession();
-  
-  // 2. Properly type the state
+  const token = session?.accessToken;
+
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [totalVendors, setTotalVendors] = useState(0);
 
+  const API = process.env.NEXT_PUBLIC_API_URL;
+
   useEffect(() => {
+    if (session?.user?.role !== "shop_admin" || !token) return;
+
     const fetchVendors = async () => {
       try {
-        // 3. Use Environment Variable for production
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL}`;
-        const res = await fetch(`${baseUrl}/api/vendors/`, {
+        const res = await fetch(`${API}/api/vendors/`, {
           headers: {
-            Authorization: `Bearer ${session?.user?.access_token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
         if (!res.ok) throw new Error("Failed to fetch vendors");
 
         const data = await res.json();
-        // Adjust the data key if your Django backend uses a different name
         setVendors(data.vendors || []);
         setTotalVendors(data.total_vendors || 0);
       } catch (error) {
@@ -41,19 +40,15 @@ export default function ManageVendors() {
       }
     };
 
-    // Use "shop_admin" role
-    if (session?.user?.role === "shop_admin") {
-      fetchVendors();
-    }
-  }, [session]);
+    fetchVendors();
+  }, [session, token, API]);
 
   const toggleVendorStatus = async (userId: number) => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL}`;
-      const res = await fetch(`${baseUrl}/api/vendors/${userId}/block_restore/`, {
+      const res = await fetch(`${API}/api/vendors/${userId}/block_restore/`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${session?.user?.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -62,7 +57,6 @@ export default function ManageVendors() {
       const data = await res.json();
       alert(data.message);
 
-      // 4. Update state safely
       setVendors((prevVendors) =>
         prevVendors.map((vendor) =>
           vendor.id === userId ? { ...vendor, is_active: !vendor.is_active } : vendor

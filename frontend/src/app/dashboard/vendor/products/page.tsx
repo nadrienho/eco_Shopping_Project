@@ -4,12 +4,11 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-// 1. Define the Product interface to satisfy the TypeScript compiler
 interface Product {
   id: number;
   name: string;
   description: string;
-  price: string | number; // Handling both just in case
+  price: string | number;
   stock: number;
   status: string;
 }
@@ -35,15 +34,17 @@ function getStatusColor(status: string) {
 }
 
 export default function VendorProducts() {
-  const { data: session } = useSession();
-  
-  // 2. Properly type the state to avoid 'never[]'
+  const { data: session, status } = useSession();
+  const token = session?.accessToken;
   const [products, setProducts] = useState<Product[]>([]);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
+    if (status !== "authenticated" || session?.user?.role !== "vendor" || !token) return;
+
+    setLoading(true);
     const fetchProducts = async () => {
       try {
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -54,7 +55,7 @@ export default function VendorProducts() {
 
         const res = await fetch(url, {
           headers: {
-            Authorization: `Bearer ${session?.user?.access_token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -64,19 +65,17 @@ export default function VendorProducts() {
         }
 
         const data = await res.json();
-        // Adjust the key below if your Django response is just the array directly
-        setProducts(data.products || data); 
+        setProducts(data.products || data);
       } catch (error) {
         console.error("Error fetching products:", error);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (session?.user?.role === "vendor") {
-      fetchProducts();
-    }
-  }, [session, filter]); 
+    fetchProducts();
+  }, [status, session, token, filter]);
 
   if (loading) {
     return (
@@ -132,18 +131,19 @@ export default function VendorProducts() {
                 <td className="border border-gray-300 px-4 py-2 text-gray-600">{product.description}</td>
                 <td className="border border-gray-300 px-4 py-2 text-gray-600">£{product.price}</td>
                 <td className="border border-gray-300 px-4 py-2 text-gray-600">{product.stock}</td>
-                
-                <td className="border border-gray-300 px-4 py-2 text-gray-600">{product.stock > 5 ? (
-                  <span className="text-green-600 font-semibold">In Stock</span>
-                ) : product.stock > 0 ? (
-                  <span className="text-yellow-600 font-semibold">Low Stock</span>
-                ) : (
-                  <span className="text-red-600 font-semibold">Out of Stock</span>
-                )}</td>
+                <td className="border border-gray-300 px-4 py-2 text-gray-600">
+                  {product.stock > 5 ? (
+                    <span className="text-green-600 font-semibold">In Stock</span>
+                  ) : product.stock > 0 ? (
+                    <span className="text-yellow-600 font-semibold">Low Stock</span>
+                  ) : (
+                    <span className="text-red-600 font-semibold">Out of Stock</span>
+                  )}
+                </td>
                 <td className="border-b py-2 px-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getStatusColor(product.status)}`}>
-                            {product.status}
-                        </span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getStatusColor(product.status)}`}>
+                    {product.status}
+                  </span>
                 </td>
               </tr>
             ))}

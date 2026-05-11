@@ -21,6 +21,7 @@ const METRICS = [
 
 export default function ProductReviewPage() {
   const { data: session } = useSession();
+  const token = session?.accessToken;
   const router = useRouter();
   const searchParams = useSearchParams();
   const productId = searchParams.get("id");
@@ -30,21 +31,20 @@ export default function ProductReviewPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!productId) return;
+    if (!productId || !token) return;
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/shop-admin/pending-products/${productId}/`, {
       headers: {
-        Authorization: `Bearer ${session?.user?.access_token}`,
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((res) => res.json())
       .then((data) => {
         setProduct(data);
-        // Default all approvals to true
         setApprovals(
           METRICS.reduce((acc, m) => ({ ...acc, [m.key]: true }), {})
         );
       });
-  }, [productId, session]);
+  }, [productId, token]);
 
   const handleApproval = (key: string, value: boolean) => {
     setApprovals((prev) => ({ ...prev, [key]: value }));
@@ -58,7 +58,7 @@ export default function ProductReviewPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.user?.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ approvals }),
       }
@@ -91,8 +91,8 @@ export default function ProductReviewPage() {
               <td className="py-2 font-semibold">{metric.label}</td>
               <td className="py-2">
                 {metric.key === "category"
-                    ? product.category?.name || ""
-                    : String(product[metric.key])}
+                  ? product.category?.name || ""
+                  : String(product[metric.key])}
               </td>
               <td className="py-2">
                 <select

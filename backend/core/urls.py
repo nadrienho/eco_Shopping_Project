@@ -17,18 +17,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from products.views import UserMeView
+from ecoShop.views import UserMeView
 from django.conf import settings
 from django.conf.urls.static import static  
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('products.urls')),
+    path('api/', include('ecoShop.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/user/me/', UserMeView.as_view(), name='user-me'),
-    path("api/products/", include("products.urls")),  # Include the products app's URLs
+    path("api/ecoShop/", include("ecoShop.urls")),  # Include the ecoShop app's URLs
     path('api/password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -17,6 +17,7 @@ export default function CheckoutPage() {
   const [postage, setPostage] = useState(5.0); // Example postage cost
 
   const { data: session } = useSession();
+  const token = session?.accessToken;
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +29,7 @@ export default function CheckoutPage() {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/`, {
           headers: {
-            Authorization: `Bearer ${session?.user?.access_token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -46,10 +47,10 @@ export default function CheckoutPage() {
       }
     };
 
-    if (session?.user) {
+    if (token) {
       fetchCart();
     }
-  }, [session]);
+  }, [token]);
 
   const [address, setAddress] = useState({ 
     fullName: "",
@@ -58,7 +59,6 @@ export default function CheckoutPage() {
     region: "",
     postCode: "",
     country: "",
-
   });
   const [deliveryOption, setDeliveryOption] = useState("standard"); // Default delivery option
   const [deliveryCost, setDeliveryCost] = useState(5.0); // Default delivery cost
@@ -69,8 +69,6 @@ export default function CheckoutPage() {
     0
   );
   const orderTotal = itemsTotal + deliveryCost;
-  console.log("Items Total:", itemsTotal);
-  console.log("Order Total:", orderTotal);
 
   const handlePlaceOrder = async () => {
     if (
@@ -97,7 +95,7 @@ export default function CheckoutPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.user?.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(orderDetails),
       });

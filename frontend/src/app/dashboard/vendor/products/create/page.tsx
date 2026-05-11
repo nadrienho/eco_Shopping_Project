@@ -9,7 +9,8 @@ interface Category {
 }
 
 export default function CreateProduct() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const token = session?.accessToken;
   const [categories, setCategories] = useState<Category[]>([]);
   const [message, setMessage] = useState("");
 
@@ -26,7 +27,6 @@ export default function CreateProduct() {
     weight: "",
   });
 
-  // 🖼️ Image upload state
   const [image, setImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -47,12 +47,10 @@ export default function CreateProduct() {
     fetchCategories();
   }, [API_BASE_URL]);
 
-  // Handle form text/number changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle image change
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -65,13 +63,13 @@ export default function CreateProduct() {
     e.preventDefault();
     setMessage("");
 
-    if (!session?.user?.access_token) {
+    // Use session?.accessToken, not session?.user?.access_token
+    if (!token) {
       setMessage("Session expired. Please log in again.");
       return;
     }
 
     try {
-      // Use FormData for file upload
       const data = new FormData();
       data.append("name", formData.name);
       data.append("description", formData.description);
@@ -92,14 +90,12 @@ export default function CreateProduct() {
       const res = await fetch(`${API_BASE_URL}/api/products/create/`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${session.user.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: data,
       });
 
       const result = await res.json();
-      console.log(result);
-
       if (!res.ok) throw new Error(result.error || "Failed to create product");
 
       setMessage("✅ Product successfully added!");
@@ -188,7 +184,6 @@ export default function CreateProduct() {
         {/* Sustainability Fields */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1">Material Type</label>
-
           <select
             name="materialType"
             value={formData.materialType}
@@ -249,7 +244,6 @@ export default function CreateProduct() {
           <input type="number" step="0.01" name="weight" value={formData.weight} onChange={handleChange} className="w-full border border-gray-300 rounded-lg p-2 text-gray-700" required />
         </div>
 
-        {/* Submit */}
         <div className="md:col-span-2 mt-4">
           <button type="submit" className="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition">
             Add Product

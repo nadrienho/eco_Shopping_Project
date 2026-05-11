@@ -20,6 +20,7 @@ export default function ProductDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
   const { data: session } = useSession();
+  const token = session?.accessToken;
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,14 +47,13 @@ export default function ProductDetailsPage() {
   };
 
   const handleAddToCart = async () => {
-    if (!session?.user?.access_token) {
+    if (!token) {
       alert("Please log in first.");
       return;
     }
 
     try {
       if (isInCart) {
-        // Proceed to checkout
         router.push("/dashboard/customer/browse/cart");
         return;
       }
@@ -62,7 +62,7 @@ export default function ProductDetailsPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.user.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           product_id: Number(id),

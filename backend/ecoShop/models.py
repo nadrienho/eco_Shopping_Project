@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
 
+
 # --- USER PROFILES ---
 class Profile(models.Model):
     ROLE_CHOICES = [
@@ -53,7 +54,7 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.IntegerField()
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey('ecoShop.Category', on_delete=models.CASCADE)
     vendor = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -77,7 +78,7 @@ class Product(models.Model):
     co2_saved = models.FloatField(default=0.0)  # CO2 saved
 
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
-    image = models.ImageField(upload_to="products/", null=True, blank=True)
+    image = models.ImageField(upload_to="ecoShop/", null=True, blank=True)
 
     def calculate_co2_baseline(self):
         """
@@ -178,7 +179,7 @@ class Product(models.Model):
 
     
 class SavedProduct(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="saved_products")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="saved_ecoShop")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="saved_by")
     saved_at = models.DateTimeField(auto_now_add=True)
 

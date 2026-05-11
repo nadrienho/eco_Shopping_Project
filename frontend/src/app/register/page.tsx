@@ -225,7 +225,7 @@ function RegisterContent() {
             {role === "vendor" && (
               <div className="space-y-4 animate-in fade-in duration-300">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 text-gray-900">
                     Shop Name *
                   </label>
                   <input
@@ -234,7 +234,7 @@ function RegisterContent() {
                     value={shopName}
                     onChange={(e) => setShopName(e.target.value)}
                     disabled={loading}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-50"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-50 text-gray-600"
                     required
                   />
                 </div>
@@ -249,7 +249,7 @@ function RegisterContent() {
                     onChange={(e) => setBio(e.target.value)}
                     disabled={loading}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-50 resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-50 resize-none text-gray-600"
                   />
                 </div>
               </div>

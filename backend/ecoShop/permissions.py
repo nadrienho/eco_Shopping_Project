@@ -1,4 +1,5 @@
 from rest_framework import permissions
+from rest_framework.permissions import BasePermission
 
 class IsVendorOrReadOnly(permissions.BasePermission):
     """
@@ -16,3 +17,8 @@ class IsVendorOrReadOnly(permissions.BasePermission):
             request.user.is_authenticated and 
             request.user.profile.role == 'vendor'
         )
+    
+
+class IsShopAdmin(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and hasattr(request.user, 'profile') and request.user.profile.role == 'shop_admin'

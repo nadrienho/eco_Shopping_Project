@@ -23,10 +23,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-fa#mx+c^44k^f58d%2bzp^xx9m#&#f4ep&gc&k)&zxeo^04jh)'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = [
         'localhost',
@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
-    'products',
+    'ecoShop',
     'rest_framework',
     'django_rest_passwordreset',
 ]
@@ -123,6 +123,8 @@ WSGI_APPLICATION = 'core.wsgi.application'
 #         )
 #     }
 
+# Render = postgresql://ecoshop_db_j7z2_user:3zVAiUGITiLloFfw97gq2b1M6q8fenWU@dpg-d7enntn7f7vs73da25i0-a/ecoshop_db_j7z2
+
 
 import dj_database_url
 # import os
@@ -138,15 +140,13 @@ import dj_database_url
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(default='postgresql://postgres:Napfar-2cymzo-roshub@db.nsutmhpqcorwyvzeyrpj.supabase.co:5432/postgres')
-}
+# DATABASES = {
+#     'default': dj_database_url.config(default='postgresql://postgres:Napfar-2cymzo-roshub@db.nsutmhpqcorwyvzeyrpj.supabase.co:5432/postgres')
+# }
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': BASE_DIR / 'db.sqlite3',
-#    }}
+DATABASES = {
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+}
 
 
 # Password validation

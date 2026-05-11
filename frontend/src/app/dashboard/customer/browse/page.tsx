@@ -21,6 +21,7 @@ interface Category {
 
 export default function BrowseProductsPage() {
   const { data: session } = useSession();
+  const token = session?.accessToken;
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,12 +36,23 @@ export default function BrowseProductsPage() {
 
   // Load initial saved products
   useEffect(() => {
-    const saved = localStorage.getItem("savedProducts");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setSavedProducts(parsed.map((p: Product) => p.id));
+  const saved = localStorage.getItem("savedProducts");
+  console.log("RAW RESPONSE:", saved);
+  let parsed: Product[] = [];
+  if (saved && saved.trim().startsWith("[")) {
+    try {
+      const arr = JSON.parse(saved);
+      parsed = Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      localStorage.removeItem("savedProducts");
+      parsed = [];
     }
-  }, []);
+  } else {
+    // If it's not a valid array, clear it
+    localStorage.removeItem("savedProducts");
+  }
+  setSavedProducts(parsed.map((p: Product) => p.id));
+}, []);
 
   useEffect(() => {
     fetchProducts();
@@ -51,6 +63,7 @@ export default function BrowseProductsPage() {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories/`);
       const data = await res.json();
+      console.log("RAW RESPONSE:", data);
       setCategories(data);
     } catch (err) {
       console.error("Failed to fetch categories:", err);
@@ -74,6 +87,7 @@ export default function BrowseProductsPage() {
 
       const res = await fetch(url);
       const data = await res.json();
+      console.log("RAW RESPONSE:", data);
       const productsList = data.results || data;
       setProducts(Array.isArray(productsList) ? productsList : []);
     } catch (err) {
@@ -84,17 +98,29 @@ export default function BrowseProductsPage() {
   };
 
   const toggleSaveProduct = (product: Product) => {
-    const saved = localStorage.getItem("savedProducts");
-    const savedList: Product[] = saved ? JSON.parse(saved) : [];
+  const saved = localStorage.getItem("savedProducts");
+  console.log("RAW RESPONSE:", saved);
+  let savedList: Product[] = [];
 
-    const exists = savedList.some((p) => p.id === product.id);
-    const updated = exists
-      ? savedList.filter((p) => p.id !== product.id)
-      : [...savedList, product];
+  if (saved && saved.trim().startsWith("[")) {
+    try {
+      const parsed = JSON.parse(saved);
+      savedList = Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      // Corrupted data, clear it
+      localStorage.removeItem("savedProducts");
+      savedList = [];
+    }
+  }
 
-    localStorage.setItem("savedProducts", JSON.stringify(updated));
-    setSavedProducts(updated.map((p) => p.id));
-  };
+  const exists = savedList.some((p) => p.id === product.id);
+  const updated = exists
+    ? savedList.filter((p) => p.id !== product.id)
+    : [...savedList, product];
+
+  localStorage.setItem("savedProducts", JSON.stringify(updated));
+  setSavedProducts(updated.map((p) => p.id));
+};
 
   const toggleCart = async (productId: number) => {
     const isInCart = cartProducts.includes(productId);
@@ -107,7 +133,7 @@ export default function BrowseProductsPage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.user?.access_token}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ product_id: productId, quantity: 1 }),
         }

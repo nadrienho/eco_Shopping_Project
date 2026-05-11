@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import router from "next/dist/shared/lib/router/router";
 
 interface CartItem {
   product: {
@@ -16,6 +15,7 @@ interface CartItem {
 
 export default function CartPage() {
   const { data: session } = useSession();
+  const token = session?.accessToken;
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +28,7 @@ export default function CartPage() {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/`, {
           headers: {
-            Authorization: `Bearer ${session?.user?.access_token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -46,10 +46,10 @@ export default function CartPage() {
       }
     };
 
-    if (session?.user) {
+    if (token) {
       fetchCart();
     }
-  }, [session]);
+  }, [token]);
 
   // Update cart item quantity
   const updateQuantity = async (productId: number, newQuantity: number) => {
@@ -58,7 +58,7 @@ export default function CartPage() {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.user?.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           product_id: productId,
@@ -88,36 +88,31 @@ export default function CartPage() {
   // Clear cart
   const clearCart = async () => {
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/clear/`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/clear/`, {
         method: "DELETE",
         headers: {
-            Authorization: `Bearer ${session?.user?.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
-        });
+      });
 
-        if (!res.ok) {
+      if (!res.ok) {
         throw new Error("Failed to clear cart on the backend");
-        }
+      }
 
-        // Clear the cart locally
-        localStorage.removeItem("cart");
-        setCart([]);
+      // Clear the cart locally
+      localStorage.removeItem("cart");
+      setCart([]);
     } catch (error) {
-        console.error("Error clearing cart:", error);
-        alert("Failed to clear the cart. Please try again.");
+      console.error("Error clearing cart:", error);
+      alert("Failed to clear the cart. Please try again.");
     }
-  }
-    
+  };
 
   // Calculate total balance
   const totalBalance = cart.reduce(
     (total, item) => total + item.product.price * item.quantity,
     0
   );
-
-//   const handlePayment = () => {
-//     alert("Payment functionality is not implemented yet!");
-//   };
 
   return (
     <div className="max-w-4xl mx-auto mt-10">

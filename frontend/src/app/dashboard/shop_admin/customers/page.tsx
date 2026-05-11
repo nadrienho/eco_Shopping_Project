@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
-// 1. Define the Customer interface
 interface Customer {
   id: number;
   username: string;
@@ -13,26 +12,27 @@ interface Customer {
 
 export default function ManageCustomers() {
   const { data: session } = useSession();
-  
-  // 2. Type your state so TypeScript knows what's inside the array
+  const token = session?.accessToken;
+
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [totalCustomers, setTotalCustomers] = useState(0);
 
+  const API = process.env.NEXT_PUBLIC_API_URL;
+
   useEffect(() => {
+    if (session?.user?.role !== "shop_admin" || !token) return;
+
     const fetchCustomers = async () => {
       try {
-        // 3. Use NEXT_PUBLIC_API_URL instead of localhost for deployment
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL}`;
-        const res = await fetch(`${apiUrl}/api/customers/`, {
+        const res = await fetch(`${API}/api/customers/`, {
           headers: {
-            Authorization: `Bearer ${session?.user?.access_token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
         if (!res.ok) throw new Error("Failed to fetch customers");
 
         const data = await res.json();
-        // Ensure you are accessing the correct key from your Django response
         setCustomers(data.customers || []);
         setTotalCustomers(data.total_customers || 0);
       } catch (error) {
@@ -40,19 +40,15 @@ export default function ManageCustomers() {
       }
     };
 
-    // Check for 'shop_admin' role
-    if (session?.user?.role === "shop_admin") {
-      fetchCustomers();
-    }
-  }, [session]);
+    fetchCustomers();
+  }, [session, token, API]);
 
   const toggleCustomerStatus = async (userId: number) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL}`;
-      const res = await fetch(`${apiUrl}/api/customers/${userId}/block_restore/`, {
+      const res = await fetch(`${API}/api/customers/${userId}/block_restore/`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${session?.user?.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 

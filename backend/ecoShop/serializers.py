@@ -1,5 +1,6 @@
+from pyclbr import Class
 from rest_framework import serializers
-from .models import Order, Product, Category, Profile, OrderItem
+from .models import Order, Product, Category, Profile, OrderItem, Category
 from django.contrib.auth.models import User
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -89,6 +90,12 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def get_total_price(self, obj):
         return sum(item.price * item.quantity for item in obj.items.all())
+    
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name']
+
     
 
 

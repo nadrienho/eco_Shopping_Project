@@ -8,7 +8,6 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Toolti
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-
 interface DashboardMetrics {
   total_co2_saved: number;
   eco_purchases: number;
@@ -31,12 +30,9 @@ export default function CustomerDashboard() {
   useEffect(() => {
     const fetchDashboardMetrics = async () => {
       if (status !== "authenticated" || !session) return;
-      
       setLoading(true);
       try {
-        // Match the property name exactly as defined in your session callback
-        const token = (session.user as any)?.access_token; 
-
+        const token = session?.accessToken;
         if (!token) {
           console.error("No access token found in session");
           return;
@@ -81,7 +77,7 @@ export default function CustomerDashboard() {
 
   // Prepare data for the bar chart
   const barChartData = {
-    labels: metrics.co2_savings_over_time.map((entry) => entry.month), // Use month instead of day
+    labels: metrics.co2_savings_over_time.map((entry) => entry.month),
     datasets: [
       {
         label: "CO2 Savings (kg)",
@@ -92,7 +88,6 @@ export default function CustomerDashboard() {
       },
     ],
   };
-
 
   const barChartOptions = {
     responsive: true,
@@ -108,7 +103,7 @@ export default function CustomerDashboard() {
       x: {
         title: {
           display: true,
-          text: "Day", // X-axis label
+          text: "Month", // X-axis label updated
         },
       },
       y: {
@@ -173,6 +168,6 @@ export default function CustomerDashboard() {
           ))}
         </div>
       </div>
-  </div>
+    </div>
   );
 }

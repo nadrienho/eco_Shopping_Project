@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 export default function VendorDashboard() {
   const { data: session, status } = useSession();
+  const token = session?.accessToken;
   const router = useRouter();
   const [totalProducts, setTotalProducts] = useState(0);
   const [totalSales, setTotalSales] = useState(0);
@@ -19,14 +20,16 @@ export default function VendorDashboard() {
   }, [status, session, router]);
 
   useEffect(() => {
-    // Fetch products for the logged-in vendor
     const fetchTotalProducts = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vendor/products/?status=verified`, {
-          headers: {
-            Authorization: `Bearer ${session?.user?.access_token}`,
-          },
-        });
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/vendor/products/?status=verified`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!res.ok) {
           const errorData = await res.json();
@@ -35,25 +38,27 @@ export default function VendorDashboard() {
 
         const data = await res.json();
         setTotalProducts(Array.isArray(data) ? data.length : (data.products?.length || 0));
-    } catch (error) {
-      console.error("Error fetching products:", error);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    if (session?.user?.role === "vendor" && token) {
+      fetchTotalProducts();
     }
-  };
+  }, [session, token]);
 
-  if (session?.user?.role === "vendor") {
-    fetchTotalProducts();
-  }
-}, [session]);
-
-  // Fetch and calculate total sales
   useEffect(() => {
     const fetchTotalSales = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vendor/order-items/`, {
-          headers: {
-            Authorization: `Bearer ${session?.user?.access_token}`,
-          },
-        });
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/vendor/order-items/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!res.ok) {
           const errorData = await res.json();
@@ -61,7 +66,6 @@ export default function VendorDashboard() {
         }
 
         const items = await res.json();
-        // Calculate total sales: sum of price * quantity for all items
         const total = items.reduce(
           (sum: number, item: any) => sum + parseFloat(item.price) * item.quantity,
           0
@@ -72,10 +76,10 @@ export default function VendorDashboard() {
       }
     };
 
-    if (session?.user?.role === "vendor") {
+    if (session?.user?.role === "vendor" && token) {
       fetchTotalSales();
     }
-  }, [session]);
+  }, [session, token]);
 
   if (status === "loading") {
     return <p>Loading...</p>;

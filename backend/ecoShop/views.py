@@ -6,9 +6,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
 from django.contrib.auth.models import User
-from .models import Product, Profile, Category, Cart, CartItem, Order, OrderItem, SavedProduct
-from .serializers import ProductSerializer, UserSerializer, UserMeSerializer, ProfileSerializer, CategorySerializer, OrderItemSerializer
-from .permissions import IsVendorOrReadOnly
+from .models import Product, Profile, Category, Cart, CartItem, Order, OrderItem, SavedProduct, Category
+from .serializers import ProductSerializer, UserSerializer, UserMeSerializer, ProfileSerializer, CategorySerializer, OrderItemSerializer, CategorySerializer
+from .permissions import IsShopAdmin, IsVendorOrReadOnly
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
@@ -433,15 +433,7 @@ def get_vendor_products(request):
 
     return Response({"products": product_data})
 
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def get_categories(request):
-    """
-    Get all categories
-    """
-    categories = Category.objects.all()
-    serializer = CategorySerializer(categories, many=True)
-    return Response(serializer.data)
+
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -871,6 +863,25 @@ def password_reset_confirm(request):
 
     return Response({"message": "Password reset successful"}, status=200)
 
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def list_public_categories(request):
+    categories = Category.objects.all()
+    serializer = CategorySerializer(categories, many=True)
+    return Response(serializer.data)
+# 2️⃣ Admin-only create + list view
+class CategoryListCreateView(generics.ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [AllowAny()]    # anyone can list
+        return [IsAdminUser()]     # only admins can create
+# 3️⃣ Admin-only update/delete view
+class CategoryRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminUser]
 
 
 

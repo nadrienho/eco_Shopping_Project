@@ -1,7 +1,6 @@
 // src/components/Sidebar.tsx
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
@@ -21,6 +20,7 @@ const menuOptions: Record<Role, { label: string; href: string; icon: string }[]>
     { label: "Manage Customers", href: "/dashboard/shop_admin/customers", icon: "👥" },
     { label: "Manage Vendors", href: "/dashboard/shop_admin/vendors", icon: "🛍️" },
     { label: "Manage Products", href: "/dashboard/shop_admin/products", icon: "📦" },
+    { label: "Manage Categories", href: "/dashboard/shop_admin/categories", icon: "📂" },
     { label: "System Settings", href: "/dashboard/shop_admin/settings", icon: "⚙️" },
   ],
   vendor: [

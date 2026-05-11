@@ -4,15 +4,14 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-
 type Product = {
   id: number;
   name: string;
   description: string;
-  price: string | number; // Handling both just in case
+  price: string | number;
   stock: number;
   status: string;
-}
+};
 
 const FILTER_OPTIONS = [
   { label: "All Products", value: "all" },
@@ -36,6 +35,7 @@ function getStatusColor(status: string) {
 
 export default function VendorStockPage() {
   const { data: session } = useSession();
+  const token = session?.accessToken;
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export default function VendorStockPage() {
 
         const res = await fetch(url, {
           headers: {
-            Authorization: `Bearer ${session?.user?.access_token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -62,8 +62,7 @@ export default function VendorStockPage() {
         }
 
         const data = await res.json();
-        // Adjust the key below if your Django response is just the array directly
-        setProducts(data.products || data); 
+        setProducts(data.products || data);
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
@@ -71,10 +70,10 @@ export default function VendorStockPage() {
       }
     };
 
-    if (session?.user?.role === "vendor") {
+    if (session?.user?.role === "vendor" && token) {
       fetchProducts();
     }
-  }, [session, filter]); 
+  }, [session, token, filter]);
 
   async function updateStock(productId: number, newStock: number) {
     const res = await fetch(
@@ -83,7 +82,7 @@ export default function VendorStockPage() {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.user?.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ stock: newStock }),
       }
@@ -94,9 +93,8 @@ export default function VendorStockPage() {
           p.id === productId ? { ...p, stock: newStock } : p
         )
       );
-        setStatusMessage("Stock updated successfully!");
-
-        setTimeout(() => setStatusMessage(null), 3000);
+      setStatusMessage("Stock updated successfully!");
+      setTimeout(() => setStatusMessage(null), 3000);
     } else {
       console.error("Failed to update stock", await res.text());
       setStatusMessage("Error updating stock.");
@@ -126,7 +124,7 @@ export default function VendorStockPage() {
           ))}
         </select>
       </div>
-  
+
       <table className="min-w-full border text-gray-600 rounded-lg p-8 mt-6">
         <thead>
           <tr>
@@ -153,29 +151,33 @@ export default function VendorStockPage() {
               </td>
               <td className="border px-4 py-2">
                 <button
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition duration-150 hover:underline"
-                    onClick={() => updateStock(product.id, product.stock)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition duration-150 hover:underline"
+                  onClick={() => updateStock(product.id, product.stock)}
                 >
-                    Save
+                  Save
                 </button>
-                </td>
-                <td className="border border-gray-300 px-4 py-2 text-gray-600">{product.stock > 5 ? (
+              </td>
+              <td className="border border-gray-300 px-4 py-2 text-gray-600">
+                {product.stock > 5 ? (
                   <span className="text-green-600 font-semibold">In Stock</span>
                 ) : product.stock > 0 ? (
                   <span className="text-yellow-600 font-semibold">Low Stock</span>
                 ) : (
                   <span className="text-red-600 font-semibold">Out of Stock</span>
                 )}
-                </td>
-                <td className="border-b py-2 px-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getStatusColor(product.status)}`}>
-                            {product.status}
-                        </span>
-                </td>
+              </td>
+              <td className="border-b py-2 px-4">
+                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getStatusColor(product.status)}`}>
+                  {product.status}
+                </span>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+      {statusMessage && (
+        <div className="mt-4 text-center text-green-700 font-semibold">{statusMessage}</div>
+      )}
     </div>
   );
 }

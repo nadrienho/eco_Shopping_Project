@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link"; // Import Link for the "View Cart" button
+import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface Product {
   id: number;
@@ -14,22 +15,34 @@ interface Product {
 }
 
 export default function SavedProductsPage() {
+  const { data: session } = useSession();
+  const token = session?.accessToken;
   const [savedProducts, setSavedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [addedToCart, setAddedToCart] = useState<number | null>(null); // State for cart feedback
+  const [addedToCart, setAddedToCart] = useState<number | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem("savedProducts");
-    if (saved) {
-      try {
+  const saved = localStorage.getItem("savedProducts");
+  if (saved) {
+    try {
+      // Only try to parse if it looks like a JSON array
+      if (saved.trim().startsWith("[")) {
         const parsed = JSON.parse(saved);
-        setSavedProducts(parsed);
-      } catch (error) {
-        console.error("Failed to parse saved products", error);
+        setSavedProducts(Array.isArray(parsed) ? parsed : []);
+      } else {
+        setSavedProducts([]);
+        localStorage.removeItem("savedProducts");
       }
+    } catch (error) {
+      console.error("Failed to parse saved products", error);
+      setSavedProducts([]);
+      localStorage.removeItem("savedProducts");
     }
-    setLoading(false);
-  }, []);
+  } else {
+    setSavedProducts([]);
+  }
+  setLoading(false);
+}, []);
 
   const removeSavedProduct = (productId: number) => {
     const updated = savedProducts.filter((p) => p.id !== productId);
@@ -37,11 +50,27 @@ export default function SavedProductsPage() {
     localStorage.setItem("savedProducts", JSON.stringify(updated));
   };
 
-  const handleAddToCart = (productId: number) => {
-    // Logic for adding to cart would go here
-    setAddedToCart(productId);
-    // Optional: Reset the "Added" state after 2 seconds
-    setTimeout(() => setAddedToCart(null), 2000);
+  const handleAddToCart = async (productId: number) => {
+    if (!token) {
+      alert("Please log in to add items to your cart.");
+      return;
+    }
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/add/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ product_id: productId, quantity: 1 }),
+      });
+      if (!res.ok) throw new Error("Failed to add to cart");
+      setAddedToCart(productId);
+      setTimeout(() => setAddedToCart(null), 2000);
+    } catch (error) {
+      alert("Failed to add to cart.");
+      console.error(error);
+    }
   };
 
   return (

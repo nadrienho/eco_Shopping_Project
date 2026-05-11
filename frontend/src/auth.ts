@@ -72,11 +72,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        const u = user as any;
-        token.id = u.id;
-        token.username = u.username;
-        token.role = u.role;
-        token.accessToken = u.access_token; // Map snake_case from user to camelCase for token
+        token.id = user.id;
+        token.username = user.username;
+        token.role = user.role;
+        token.accessToken = user.access_token; // Map snake_case from user to camelCase for token
+        token.refreshToken = user.refresh_token;
       }
       return token;
     },
@@ -85,7 +85,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.id as string;
         session.user.username = token.username as string;
         session.user.role = token.role as Role;
-        session.user.access_token = token.accessToken as string;
+        session.accessToken = token.accessToken as string;
+        session.refreshToken = token.refreshToken as string;
         
         // Check your terminal logs to see if this prints a real string
         console.log("Session Callback Token:", token.accessToken ? "EXISTS" : "MISSING");

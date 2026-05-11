@@ -16,11 +16,11 @@ class ProductAdmin(admin.ModelAdmin):
 
     get_eco_score.short_description = 'Eco Score'
 
-    actions = ['approve_products']
+    actions = ['approve_ecoShop']
 
-    def approve_products(self, request, queryset):
+    def approve_ecoShop(self, request, queryset):
         queryset.update(status='verified')
-    approve_products.short_description = "Mark selected products as verified"
+    approve_ecoShop.short_description = "Mark selected ecoShop as verified"
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
