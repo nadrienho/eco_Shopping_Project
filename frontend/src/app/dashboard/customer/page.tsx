@@ -32,7 +32,7 @@ export default function CustomerDashboard() {
       if (status !== "authenticated" || !session) return;
       setLoading(true);
       try {
-        const token = session?.accessToken;
+        const token = (session as any)?.accessToken; // Accessing token based on your setup
         if (!token) {
           console.error("No access token found in session");
           return;
@@ -64,15 +64,15 @@ export default function CustomerDashboard() {
   }, [status, session]);
 
   if (loading) {
-    return <p>Loading dashboard...</p>;
+    return <p className="p-8">Loading dashboard...</p>;
   }
 
   if (error) {
-    return <p className="text-red-500">{error}</p>;
+    return <p className="p-8 text-red-500">{error}</p>;
   }
 
   if (!metrics) {
-    return <p>No data available.</p>;
+    return <p className="p-8">No data available.</p>;
   }
 
   // Prepare data for the bar chart
@@ -92,35 +92,20 @@ export default function CustomerDashboard() {
   const barChartOptions = {
     responsive: true,
     plugins: {
-      legend: {
-        display: true,
-      },
-      title: {
-        display: false,
-      },
+      legend: { display: true },
+      title: { display: false },
     },
     scales: {
-      x: {
-        title: {
-          display: true,
-          text: "Month", // X-axis label updated
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: "CO₂ Savings (kg)",
-        },
-        beginAtZero: true,
-      },
+      x: { title: { display: true, text: "Month" } },
+      y: { title: { display: true, text: "CO₂ Savings (kg)" }, beginAtZero: true },
     },
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-4">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-green-600 to-green-500 rounded-lg p-8 text-white shadow-lg">
-        <h1 className="text-4xl font-bold mb-2">Welcome, {session?.user?.username}! 👋</h1>
+        <h1 className="text-4xl font-bold mb-2">Welcome, {session?.user?.name || (session?.user as any)?.username}! 👋</h1>
         <p className="text-green-100">Customer Dashboard</p>
       </div>
 
@@ -128,15 +113,23 @@ export default function CustomerDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         <div className="p-6 bg-white border border-green-300 rounded-lg shadow">
           <h2 className="text-lg font-bold text-green-600">Total CO2 Saved</h2>
-          <p className="text-3xl font-bold text-black">{metrics.total_co2_saved.toFixed(2)} kg</p>
+          <p className="text-3xl font-bold text-black">
+            {metrics.total_co2_saved >= 1
+              ? `${metrics.total_co2_saved.toFixed(2)} kg`
+              : `${(metrics.total_co2_saved * 1000).toFixed(0)} g`}
+          </p>
         </div>
+        
         <div className="p-6 bg-white border border-green-300 rounded-lg shadow">
           <h2 className="text-lg font-bold text-green-600">Number of EcoPurchases</h2>
           <p className="text-3xl font-bold text-black">{metrics.eco_purchases}</p>
         </div>
+        
         <div className="p-6 bg-white border border-green-300 rounded-lg shadow">
           <h2 className="text-lg font-bold text-green-600">Average EcoScore</h2>
-          <p className="text-3xl font-bold text-black">{metrics.average_eco_score.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-black">
+            {metrics.average_eco_score.toFixed(1)} <span className="text-lg font-normal text-gray-500">/ 100</span>
+          </p>
         </div>
       </div>
 
@@ -159,11 +152,13 @@ export default function CustomerDashboard() {
               <ul className="mt-2 space-y-1">
                 {order.items.map((item, index) => (
                   <li key={index} className="text-sm text-black">
-                    {item.name} - ${item.price.toFixed(2)} x {item.quantity}
+                    {item.name} — ${item.price.toFixed(2)} x {item.quantity}
                   </li>
                 ))}
               </ul>
-              <p className="mt-2 text-sm font-bold text-black">Total: ${order.total_cost.toFixed(2)}</p>
+              <p className="mt-2 text-sm font-bold text-black border-top pt-2">
+                Total: ${order.total_cost.toFixed(2)}
+              </p>
             </div>
           ))}
         </div>

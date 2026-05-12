@@ -42,6 +42,28 @@ class Product(models.Model):
         ("recycled_polyester", "Recycled Polyester"),
         ("virgin_polyester", "Virgin Polyester"),
         ("cotton", "Cotton"),
+        ("organic_cotton", "Organic Cotton"),
+        ("conventional_cotton", "Conventional Cotton"),
+        ("linen", "Linen"),
+        ("hemp", "Hemp"),
+        ("wool", "Wool"),
+        ("nylon", "Nylon"),
+        ("silk", "Silk"),
+        ("recycled_cardboard", "Recycled Cardboard"),
+        ("virgin_paper", "Virgin Paper"),
+        ("recycled_plastic_pet", "Recycled Plastic PET"),
+        ("virgin_plastic_pet", "Virgin Plastic PET"),
+        ("bioplastic_pla", "Bioplastic PLA"),
+        ("glass", "Glass"),
+        ("aluminum_recycled", "Recycled Aluminum"),
+        ("aluminum_virgin", "Virgin Aluminum"),
+        ("steel", "Steel"),
+        ("copper", "Copper"),
+        ("lithium_ion_battery", "Lithium-ion Battery"),
+        ("bamboo", "Bamboo"),
+        ("cork", "Cork"),
+        ("hardwood_timber", "Hardwood Timber"),
+        ("concrete", "Concrete"),
     ]
 
     TRANSPORT_MODE_CHOICES = [
@@ -152,12 +174,20 @@ class Product(models.Model):
         return max(self.co2_baseline - self.actual_co2, 0.0)
     
     def save(self, *args, **kwargs):
-        """
-        Override the save method to calculate and store baseline_co2, actual_co2, and co2_saved.
-        """
+        # 1. Calculate raw CO2 values
         self.co2_baseline = self.calculate_co2_baseline()
         self.actual_co2 = self.calculate_actual_co2()
         self.co2_saved = self.calculate_co2_saved()
+
+        # 2. Derive the 1-100 scores for the EcoScore formula
+        # Example logic: Higher CO2 saved = Higher Carbon Score
+        if self.co2_baseline > 0:
+            self.carbon_footprint = min(100, (self.co2_saved / self.co2_baseline) * 100)
+        
+        # Map material sustainability (Example logic)
+        eco_materials = ["organic_cotton", "recycled_polyester", "hemp", "bamboo"]
+        self.material_sustainability = 90 if self.material_type in eco_materials else 30
+        
         super().save(*args, **kwargs)
 
     @property

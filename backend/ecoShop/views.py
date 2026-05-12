@@ -1,3 +1,4 @@
+from decimal import Decimal
 import os
 from rest_framework import generics, viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
@@ -342,7 +343,7 @@ def create_product(request):
 
     # convert numerics safely
     try:
-        price = float(data.get("price", 0))
+        price = Decimal(data.get("price"))
         stock = int(data.get("stock", 0))
         weight = float(data.get("weight", 0))
         energy_usage = float(data.get("energy_usage", 0))
