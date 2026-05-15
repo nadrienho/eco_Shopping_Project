@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react"; // Import session
+import Link from "next/link";
 
 interface OrderItem {
   name: string;
@@ -95,9 +96,10 @@ export default function OrdersPage() {
           <p className="text-gray-500 text-lg">You haven't placed any orders yet.</p>
         </div>
       ) : (
-        <div className="space-y-6 padding-4">
+        <div className=" mt-6 space-y-6">
           {orders.map((order) => (
-            <div key={order.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <Link key={order.id} href={`/dashboard/customer/orders/${order.id}`} className="block" style={{ textDecoration: "none" }}>
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm padding-4 hover:shadow-md transition-shadow">
               <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">Order #{order.id}</h2>
@@ -129,6 +131,7 @@ export default function OrdersPage() {
                 <p className="text-xl font-bold text-green-700">${order.total_cost.toFixed(2)}</p>
               </div>
             </div>
+            </Link>
           ))}
         </div>
       )}

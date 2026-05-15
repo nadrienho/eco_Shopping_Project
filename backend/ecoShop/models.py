@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
+import dj_database_url
 
 
 # --- USER PROFILES ---
@@ -300,4 +302,38 @@ class CartItem(models.Model):
     def __str__(self):
         return f"{self.quantity} x {self.product.name} in {self.cart.user.username}'s cart"
 
+class Review(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="reviews"
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="reviews"
+    )
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="reviews"
+    )
+    rating = models.IntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(5),
+        ]
+    )
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "product", "order"],
+                name="unique_review_per_user_product_order"
+            )
+        ]
+        ordering = ["-created_at"]
+    def __str__(self):
+        return f"{self.user.username} - {self.product.name} - {self.rating} stars"
 

@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import CategoryRetrieveUpdateDestroyView, ProductListView, UserDetailView, RegisterView, block_or_restore_vendor, clear_cart, create_order, customer_dashboard, get_saved_products, list_public_categories, update_cart_item_quantity, view_cart, add_to_cart, view_orders
+from .views import CategoryRetrieveUpdateDestroyView, ProductListView, UserDetailView, RegisterView, block_or_restore_vendor, clear_cart, create_order, customer_dashboard, get_saved_products, leave_review, list_public_categories, order_detail, product_reviews, update_cart_item_quantity, view_cart, add_to_cart, view_orders
 from .views import get_all_customers, block_or_restore_customer, get_all_vendors, block_or_restore_vendor, create_product, get_vendor_products, PendingProductListView
 from .views import VendorProductListView, VendorProductStockUpdateView, VendorOrderItemListView, VendorOrderItemStatusUpdateView, PendingProductDetailView, ProductMetricApprovalView
 from .views import ShopAdminProductListView, ProductDetailView, password_reset, password_reset_confirm, CategoryListCreateView, CategoryRetrieveUpdateDestroyView
@@ -34,13 +34,14 @@ urlpatterns = [
     path('products/<int:pk>/', ProductDetailView.as_view(), name='product-detail'),
     path("password_reset/", password_reset, name="password_reset"),
     path("password_reset_confirm/", password_reset_confirm, name="password_reset_confirm"),
-    #path('api/password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
-    #path("categories/", get_categories, name="get_categories"),
     # Public
     path("categories/", list_public_categories, name="public-categories"),
     # Admin CRUD
     path("categories/manage/", CategoryListCreateView.as_view(), name="category-list-create"),
     path("categories/manage/<int:pk>/", CategoryRetrieveUpdateDestroyView.as_view(), name="category-detail"),
+    path("orders/view/<int:order_id>/", order_detail, name="order-detail"),
+    path("reviews/", leave_review, name="leave-review"),
+    path("products/<int:product_id>/reviews/", product_reviews, name="product-reviews"),
 
 
     

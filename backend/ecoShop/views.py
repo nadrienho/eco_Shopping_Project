@@ -7,8 +7,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
 from django.contrib.auth.models import User
-from .models import Product, Profile, Category, Cart, CartItem, Order, OrderItem, SavedProduct, Category
-from .serializers import ProductSerializer, UserSerializer, UserMeSerializer, ProfileSerializer, CategorySerializer, OrderItemSerializer, CategorySerializer
+from .models import Product, Profile, Category, Cart, CartItem, Order, OrderItem, Review, SavedProduct, Category
+from .serializers import ProductSerializer, UserSerializer, UserMeSerializer, ProfileSerializer, CategorySerializer, OrderItemSerializer, CategorySerializer, OrderDetailSerializer, ReviewSerializer
 from .permissions import IsShopAdmin, IsVendorOrReadOnly
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -884,8 +884,38 @@ class CategoryRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CategorySerializer
     permission_classes = [IsAdminUser]
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def order_detail(request, order_id):
+    try:
+        order = Order.objects.get(id=order_id, user=request.user)
+    except Order.DoesNotExist:
+        return Response({"detail": "Order not found."}, status=404)
+    serializer = OrderDetailSerializer(order)
+    return Response(serializer.data)
 
-
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def leave_review(request):
+    serializer = ReviewSerializer(
+        data=request.data,
+        context={"request": request}
+    )
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def product_reviews(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    reviews = Review.objects.filter(product=product).select_related(
+        "user",
+        "product",
+        "order"
+    )
+    serializer = ReviewSerializer(reviews, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 
