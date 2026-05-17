@@ -104,7 +104,9 @@ function LoginContent() {
             <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-green-500 rounded-lg flex items-center justify-center shadow-md">
               <span className="text-white text-xl font-bold">♻️</span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Eco-Shop</h1>
+            <Link href="/" className="text-3xl font-bold text-green-600 hover:underline transition">
+              Eco-Shop
+            </Link>
           </div>
           <p className="text-gray-600">Sustainable shopping made simple</p>
         </div>

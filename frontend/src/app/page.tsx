@@ -16,7 +16,7 @@ export default function HomePage() {
             <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-green-500 rounded-lg flex items-center justify-center">
               <span className="text-white text-xl font-bold">♻️</span>
             </div>
-            <span className="text-2xl font-bold text-gray-900">Eco-Shop</span>
+            <span className="text-2xl font-bold text-green-600">Eco-Shop</span>
           </Link>
 
           {/* Navigation Links */}

@@ -5,13 +5,12 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { Role } from "@/types/roles";
-// Adding Lucide icons for a cleaner look, or stick to emojis
-import { ChevronLeft, ChevronRight } from "lucide-react"; 
+import { X } from "lucide-react";
 
 interface SidebarProps {
   role: Role;
-  isCollapsed: boolean;
-  setIsCollapsed: (value: boolean) => void;
+  open: boolean;
+  onClose: () => void;
 }
 
 const menuOptions: Record<Role, { label: string; href: string; icon: string }[]> = {
@@ -39,7 +38,7 @@ const menuOptions: Record<Role, { label: string; href: string; icon: string }[]>
   ],
 };
 
-export default function Sidebar({ role, isCollapsed, setIsCollapsed }: SidebarProps) {
+export default function Sidebar({ role, open, onClose }: SidebarProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
 
@@ -47,58 +46,75 @@ export default function Sidebar({ role, isCollapsed, setIsCollapsed }: SidebarPr
   const currentMenuItems = menuOptions[role] || [];
 
   return (
-    <aside 
-      className={`fixed top-0 left-0 h-screen transition-all duration-300 ease-in-out bg-white border-r border-gray-200 flex flex-col py-8 z-40 ${
-        isCollapsed ? "w-20" : "w-64"
-      }`}
-    >
-      {/* Collapse Toggle Button */}
-      <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-20 bg-white border border-gray-200 rounded-full p-1 hover:bg-gray-100 shadow-sm z-50 text-gray-500"
+    <>
+      {/* Dark overlay behind sidebar */}
+      <div
+        onClick={onClose}
+        className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${
+          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      />
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed top-0 left-0 h-screen w-64 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
-        {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-      </button>
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+          <h2 className="font-bold text-lg text-gray-900">Menu</h2>
 
-      {/* Navigation Menu */}
-      <nav className="flex flex-col gap-2 flex-1 px-4 overflow-x-hidden">
-        {currentMenuItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            title={isCollapsed ? item.label : ""}
-            className={`py-2 px-3 rounded-lg transition flex items-center gap-3 font-medium min-w-max ${
-              isActive(item.href)
-                ? "bg-green-600 text-white"
-                : "text-gray-700 hover:bg-green-100 hover:text-green-700"
-            }`}
+          <button
+            onClick={onClose}
+            aria-label="Close sidebar"
+            className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition"
           >
-            <span className="text-xl flex-shrink-0 w-6 text-center">{item.icon}</span>
-            <span className={`transition-opacity duration-300 ${isCollapsed ? "opacity-0 w-0" : "opacity-100"}`}>
-              {item.label}
-            </span>
-          </Link>
-        ))}
-      </nav>
+            <X size={22} />
+          </button>
+        </div>
 
-      {/* User Profile Section */}
-      <div className={`border-t border-gray-200 pt-4 px-4 overflow-hidden`}>
-        <div className={`flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition`}>
-          <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-sm">
-              {session?.user?.username?.charAt(0).toUpperCase() || "U"}
-            </span>
-          </div>
-          {!isCollapsed && (
+        {/* Navigation Menu */}
+        <nav className="flex flex-col gap-2 flex-1 px-4 py-5 overflow-y-auto">
+          {currentMenuItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onClose}
+              className={`py-2.5 px-3 rounded-lg transition flex items-center gap-3 font-medium ${
+                isActive(item.href)
+                  ? "bg-green-600 text-white"
+                  : "text-gray-700 hover:bg-green-100 hover:text-green-700"
+              }`}
+            >
+              <span className="text-xl flex-shrink-0 w-6 text-center">
+                {item.icon}
+              </span>
+              <span>{item.label}</span>
+            </Link>
+          ))}
+        </nav>
+
+        {/* User Profile Section */}
+        <div className="border-t border-gray-200 p-4">
+          <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-sm">
+                {session?.user?.username?.charAt(0).toUpperCase() || "U"}
+              </span>
+            </div>
+
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate">
                 {session?.user?.username || "User"}
               </p>
-              <p className="text-xs text-gray-500 truncate capitalize">{role}</p>
+              <p className="text-xs text-gray-500 truncate capitalize">
+                {role}
+              </p>
             </div>
-          )}
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }

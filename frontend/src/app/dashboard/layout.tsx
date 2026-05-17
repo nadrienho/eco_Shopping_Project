@@ -7,7 +7,7 @@ import SearchResults from "@/components/SearchResults";
 import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Role } from "@/types/roles"; 
+import { Role } from "@/types/roles";
 
 export default function DashboardLayout({
   children,
@@ -17,13 +17,11 @@ export default function DashboardLayout({
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
-  
+
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isValidPath, setIsValidPath] = useState(true);
   const [userRole, setUserRole] = useState<Role>("customer");
-  
-  // New State for Sidebar Collapse
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.role) {
@@ -33,6 +31,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (status === "loading") return;
+
     if (status === "unauthenticated") {
       router.push("/login");
       return;
@@ -41,13 +40,14 @@ export default function DashboardLayout({
     if (status === "authenticated" && session?.user?.role) {
       const role = session.user.role as Role;
       const pathParts = pathname.split("/");
-      const dashboardType = pathParts[2]; 
+      const dashboardType = pathParts[2];
 
       if (dashboardType && dashboardType !== role) {
         router.push(`/dashboard/${role}`);
         setIsValidPath(false);
         return;
       }
+
       setIsValidPath(true);
     }
   }, [status, session, pathname, router]);
@@ -64,33 +64,24 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Header stays at the top. 
-      */}
-      <DashboardHeader onSearch={setSearchResults} />
+    <div className="min-h-screen bg-gray-50">
+      <DashboardHeader
+        onSearch={setSearchResults}
+        onOpenSidebar={() => setSidebarOpen(true)}
+      />
 
-      <div className="flex flex-1 relative">
-        <Sidebar 
-          role={userRole} 
-          isCollapsed={isCollapsed} 
-          setIsCollapsed={setIsCollapsed} 
-        />
+      <Sidebar
+        role={userRole}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
-        {/* DYNAMIC MARGIN: 
-            ml-64 when open (256px) 
-            ml-20 when collapsed (80px)
-        */}
-        <main 
-          className={`flex-1 transition-all duration-300 ease-in-out bg-gray-50 p-8 ${
-            isCollapsed ? "ml-20" : "ml-64"
-          }`}
-        >
-          <div className="max-w-7xl mx-auto">
-            <SearchResults results={searchResults} />
-            {children}
-          </div>
-        </main>
-      </div>
+      <main className="p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <SearchResults results={searchResults} />
+          {children}
+        </div>
+      </main>
     </div>
   );
 }
