@@ -87,58 +87,65 @@ export default function OrderDetailsPage() {
   };
 
   const submitReview = async (item: OrderItem) => {
-    const form = reviewForms[item.id];
+  const form = reviewForms[item.id];
 
-    if (!form || !form.rating || !form.comment.trim()) {
-      alert("Please select a rating and write a review.");
+  if (!form || !form.rating || !form.comment.trim()) {
+    alert("Please select a rating and write a review.");
+    return;
+  }
+
+  if (!item.product) {
+    alert("Product ID is missing for this item.");
+    return;
+  }
+
+  const token = session?.accessToken;
+
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        product: item.product, // Only use the actual product ID
+        order: order?.id,
+        rating: form.rating,
+        comment: form.comment,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error(data);
+      alert(
+        data.non_field_errors?.[0] ||
+        data.product?.[0] ||
+        data.order?.[0] ||
+        data.rating?.[0] ||
+        data.comment?.[0] ||
+        "Failed to submit review."
+      );
       return;
     }
 
-    const token = session?.accessToken;
+    alert("Review submitted!");
 
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          product: item.product ?? item.id,
-          order: order?.id,
-          rating: form.rating,
-          comment: form.comment,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.error(data);
-        alert(
-          data.non_field_errors?.[0] ||
-            data.rating?.[0] ||
-            data.comment?.[0] ||
-            "Failed to submit review."
-        );
-        return;
-      }
-
-      alert("Review submitted!");
-
-      setReviewForms((prev) => ({
-        ...prev,
-        [item.id]: {
-          rating: 5,
-          comment: "",
-          open: false,
-        },
-      }));
-    } catch (err) {
-      console.error(err);
-      alert("Error submitting review.");
-    }
-  };
+    setReviewForms((prev) => ({
+      ...prev,
+      [item.id]: {
+        rating: 5,
+        comment: "",
+        open: false,
+      },
+    }));
+  } catch (err) {
+    console.error(err);
+    alert("Error submitting review.");
+  }
+};
 
   if (loading) return <div className="p-8">Loading...</div>;
   if (!order) return <div className="p-8 text-red-500">Order not found.</div>;
@@ -149,7 +156,7 @@ export default function OrderDetailsPage() {
         <h1 className="text-2xl font-bold mb-6">Order #{order.id} Details</h1>
       </div>
 
-      {order.items.map((item) => {
+      {Array.isArray(order.items) && order.items.map((item) => {
         const form = reviewForms[item.id];
 
         return (

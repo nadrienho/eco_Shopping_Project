@@ -9,11 +9,68 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ['id', 'name', 'slug']
 
+class ReviewSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source="user.username", read_only=True)
+    product_name = serializers.CharField(source="product.name", read_only=True)
+
+    class Meta:
+        model = Review
+        fields = [
+            "id",
+            "user",
+            "user_name",
+            "product",
+            "product_name",
+            "order",
+            "rating",
+            "comment",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "user",
+            "user_name",
+            "product_name",
+            "created_at",
+        ]
+
+    def validate_rating(self, value):
+        if value < 1 or value > 5:
+            raise serializers.ValidationError("Rating must be between 1 and 5.")
+        return value
+
+    def validate(self, attrs):
+        request = self.context.get("request")
+
+        if not request:
+            raise serializers.ValidationError("Request context is missing.")
+
+        user = request.user
+        product = attrs.get("product")
+        order = attrs.get("order")
+
+        if order.user != user:
+            raise serializers.ValidationError(
+                "You can only review products from your own orders."
+            )
+
+        if Review.objects.filter(user=user, product=product, order=order).exists():
+            raise serializers.ValidationError(
+                "You have already reviewed this product for this order."
+            )
+
+        return attrs
+
+    def create(self, validated_data):
+        user = self.context["request"].user
+        return Review.objects.create(user=user, **validated_data)
+
 class ProductSerializer(serializers.ModelSerializer):
     # This nested serializer shows the full category info instead of just an ID
     category = CategorySerializer(read_only=True)
     vendor_name = serializers.CharField(source="vendor.username", read_only=True)
     average_rating = serializers.SerializerMethodField()
+    reviews = ReviewSerializer(many=True, read_only=True)
     review_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -21,7 +78,8 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'description', 'price', 'stock', 'category', 'vendor',
             'created_at', 'weight', 'material_type', 'transport_distance', 'transport_mode',
-            'energy_usage', 'grid_intensity', 'co2_saved', 'status', 'co2_baseline', 'actual_co2', 'eco_score', 'image', 'vendor_name', 'average_rating', 'review_count'
+            'energy_usage', 'grid_intensity', 'co2_saved', 'status', 'co2_baseline', 'actual_co2', 'eco_score', 'image', 'vendor_name', 'average_rating', 'review_count',
+            'reviews',
 
         ]
 
@@ -112,12 +170,13 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class OrderItemDetailSerializer(serializers.ModelSerializer):
+    product = serializers.PrimaryKeyRelatedField(read_only=True)
     name = serializers.CharField(source='product.name')
     description = serializers.CharField(source='product.description')
     image = serializers.ImageField(source='product.image', allow_null=True)
     class Meta:
         model = OrderItem
-        fields = ['id', 'name', 'description', 'price', 'quantity', 'image']
+        fields = ['id', 'name', 'description', 'price', 'quantity', 'image', 'product']
 
 class OrderDetailSerializer(serializers.ModelSerializer):
     items = OrderItemDetailSerializer(many=True, read_only=True)
@@ -125,61 +184,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
         model = Order
         fields = ['id', 'items']
 
-class ReviewSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source="user.username", read_only=True)
-    product_name = serializers.CharField(source="product.name", read_only=True)
 
-    class Meta:
-        model = Review
-        fields = [
-            "id",
-            "user",
-            "user_name",
-            "product",
-            "product_name",
-            "order",
-            "rating",
-            "comment",
-            "created_at",
-        ]
-        read_only_fields = [
-            "id",
-            "user",
-            "user_name",
-            "product_name",
-            "created_at",
-        ]
-
-    def validate_rating(self, value):
-        if value < 1 or value > 5:
-            raise serializers.ValidationError("Rating must be between 1 and 5.")
-        return value
-
-    def validate(self, attrs):
-        request = self.context.get("request")
-
-        if not request:
-            raise serializers.ValidationError("Request context is missing.")
-
-        user = request.user
-        product = attrs.get("product")
-        order = attrs.get("order")
-
-        if order.user != user:
-            raise serializers.ValidationError(
-                "You can only review products from your own orders."
-            )
-
-        if Review.objects.filter(user=user, product=product, order=order).exists():
-            raise serializers.ValidationError(
-                "You have already reviewed this product for this order."
-            )
-
-        return attrs
-
-    def create(self, validated_data):
-        user = self.context["request"].user
-        return Review.objects.create(user=user, **validated_data)
 
     
 
