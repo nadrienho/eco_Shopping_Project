@@ -2,10 +2,11 @@
 "use client";
 
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { Role } from "@/types/roles";
 import { X } from "lucide-react";
+
 
 interface SidebarProps {
   role: Role;
@@ -111,6 +112,12 @@ export default function Sidebar({ role, open, onClose }: SidebarProps) {
               <p className="text-xs text-gray-500 truncate capitalize">
                 {role}
               </p>
+              <button
+                    onClick={() => signOut({ callbackUrl: "/login" })}
+                    className="px-3 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm font-semibold transition"
+              >
+                  Logout
+              </button>
             </div>
           </div>
         </div>
