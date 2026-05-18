@@ -171,12 +171,13 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class OrderItemDetailSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(read_only=True)
+    order_id = serializers.IntegerField(source="order.id", read_only=True)
     name = serializers.CharField(source='product.name')
     description = serializers.CharField(source='product.description')
     image = serializers.ImageField(source='product.image', allow_null=True)
     class Meta:
         model = OrderItem
-        fields = ['id', 'name', 'description', 'price', 'quantity', 'image', 'product']
+        fields = ['id', 'order_id', 'name', 'description', 'price', 'quantity', 'image', 'product', 'status']
 
 class OrderDetailSerializer(serializers.ModelSerializer):
     items = OrderItemDetailSerializer(many=True, read_only=True)

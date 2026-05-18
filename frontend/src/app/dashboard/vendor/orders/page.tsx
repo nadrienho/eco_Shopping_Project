@@ -86,16 +86,29 @@ export default function VendorOrderItemsPage() {
             <th className="border px-4 py-2 bg-gray-200">Product</th>
             <th className="border px-4 py-2 bg-gray-200">Quantity</th>
             <th className="border px-4 py-2 bg-gray-200">Status</th>
-            <th className="border px-4 py-2 bg-gray-200">Update</th>
           </tr>
         </thead>
         <tbody>
           {items.map((item) => (
             <tr key={item.id}>
               <td className="border px-4 py-2">{item.order_id}</td>
-              <td className="border px-4 py-2">{item.product.name}</td>
+              <td className="border px-4 py-2">{item.name}</td>
               <td className="border px-4 py-2">{item.quantity}</td>
               <td className="border px-4 py-2">
+                <span
+                  className={`inline-block w-3 h-3 rounded-full ${
+                    item.status === "cancelled"
+                      ? "bg-red-500"
+                      : item.status === "delivered"
+                      ? "bg-green-500"
+                      : item.status === "shipped"
+                      ? "bg-blue-500"
+                      : item.status === "processing"
+                      ? "bg-yellow-400"
+                      : "bg-gray-400"
+                  }`}
+                  title={item.status}
+                />
                 <select
                   value={item.status}
                   onChange={(e) => updateStatus(item.id, e.target.value)}
@@ -108,15 +121,7 @@ export default function VendorOrderItemsPage() {
                   ))}
                 </select>
               </td>
-              <td>
-                <button
-                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-                  onClick={() => updateStatus(item.id, "cancelled")}
-                  disabled={item.status === "cancelled"}
-                >
-                  Cancel
-                </button>
-              </td>
+              
             </tr>
           ))}
         </tbody>

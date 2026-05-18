@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
 from django.contrib.auth.models import User
 from .models import Product, Profile, Category, Cart, CartItem, Order, OrderItem, Review, SavedProduct, Category
-from .serializers import ProductSerializer, UserSerializer, UserMeSerializer, ProfileSerializer, CategorySerializer, OrderItemSerializer, CategorySerializer, OrderDetailSerializer, ReviewSerializer
+from .serializers import OrderItemDetailSerializer, ProductSerializer, UserSerializer, UserMeSerializer, ProfileSerializer, CategorySerializer, OrderItemSerializer, CategorySerializer, OrderDetailSerializer, ReviewSerializer
 from .permissions import IsShopAdmin, IsVendorOrReadOnly
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -750,11 +750,10 @@ class VendorOrderItemListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        print("User:", request.user)
-        items = OrderItem.objects.filter(product__vendor=request.user)
-        print("Items:", items)
-        serializer = OrderItemSerializer(items, many=True)
-        print("Serialized:", serializer.data)
+        items = OrderItem.objects.filter(
+            product__vendor=request.user
+        ).select_related("order", "product")
+        serializer = OrderItemDetailSerializer(items, many=True)
         return Response(serializer.data)
 
 class VendorOrderItemStatusUpdateView(APIView):
