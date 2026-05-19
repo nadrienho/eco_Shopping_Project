@@ -22,6 +22,7 @@ const menuOptions: Record<Role, { label: string; href: string; icon: string }[]>
     { label: "Manage Products", href: "/dashboard/shop_admin/products", icon: "📦" },
     { label: "Manage Categories", href: "/dashboard/shop_admin/categories", icon: "📂" },
     { label: "System Settings", href: "/dashboard/shop_admin/settings", icon: "⚙️" },
+    { label: "Featured Products", href: "/dashboard/shop_admin/featured-products", icon: "⭐" },
   ],
   vendor: [
     { label: "Dashboard", href: "/dashboard/vendor", icon: "📊" },
@@ -112,12 +113,7 @@ export default function Sidebar({ role, open, onClose }: SidebarProps) {
               <p className="text-xs text-gray-500 truncate capitalize">
                 {role}
               </p>
-              <button
-                    onClick={() => signOut({ callbackUrl: "/login" })}
-                    className="px-3 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm font-semibold transition"
-              >
-                  Logout
-              </button>
+              
             </div>
           </div>
         </div>

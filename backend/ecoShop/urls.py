@@ -1,8 +1,8 @@
 from django.urls import path, include
-from .views import CategoryRetrieveUpdateDestroyView, ProductListView, UserDetailView, RegisterView, block_or_restore_vendor, clear_cart, create_order, customer_dashboard, get_saved_products, leave_review, list_public_categories, order_detail, product_reviews, update_cart_item_quantity, view_cart, add_to_cart, view_orders
+from .views import CategoryRetrieveUpdateDestroyView, ProductListView, UserDetailView, RegisterView, block_or_restore_vendor, clear_cart, create_order, customer_dashboard, get_saved_products, leave_review, list_public_categories, order_detail, product_reviews, set_featured_products, update_cart_item_quantity, view_cart, add_to_cart, view_orders
 from .views import get_all_customers, block_or_restore_customer, get_all_vendors, block_or_restore_vendor, create_product, get_vendor_products, PendingProductListView
 from .views import VendorProductListView, VendorProductStockUpdateView, VendorOrderItemListView, VendorOrderItemStatusUpdateView, PendingProductDetailView, ProductMetricApprovalView
-from .views import ShopAdminProductListView, ProductDetailView, password_reset, password_reset_confirm, CategoryListCreateView, CategoryRetrieveUpdateDestroyView
+from .views import ShopAdminProductListView, ProductDetailView, password_reset, password_reset_confirm, CategoryListCreateView, CategoryRetrieveUpdateDestroyView, featured_products, set_featured_products
 
 urlpatterns = [
     path('products/', ProductListView.as_view(), name='product-list'),
@@ -42,7 +42,7 @@ urlpatterns = [
     path("orders/view/<int:order_id>/", order_detail, name="order-detail"),
     path("reviews/", leave_review, name="leave-review"),
     path("products/<int:product_id>/reviews/", product_reviews, name="product-reviews"),
-
-
+    path("products/featured/set/", set_featured_products, name="set-featured-products"),
+    path("products/featured/", featured_products, name="featured-products"),
     
 ]

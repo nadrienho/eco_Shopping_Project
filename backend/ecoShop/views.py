@@ -916,6 +916,44 @@ def product_reviews(request, product_id):
     serializer = ReviewSerializer(reviews, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def featured_products(request):
+    products = Product.objects.filter(
+        featured=True,
+        status="verified"
+    ).order_by("-created_at")[:3]
+    serializer = ProductSerializer(products, many=True, context={"request": request})
+    return Response(serializer.data)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def set_featured_products(request):
+    user = request.user
+    if getattr(user.profile, "role", None) != "shop_admin":
+        return Response(
+            {"error": "Only shop admins can update featured products."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+    ids = request.data.get("product_ids", [])
+    if not isinstance(ids, list):
+        return Response(
+            {"error": "product_ids must be a list."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    ids = ids[:3]
+    Product.objects.update(featured=False)
+    Product.objects.filter(
+        id__in=ids,
+        status="verified"
+    ).update(featured=True)
+    return Response(
+        {
+            "status": "ok",
+            "featured_product_ids": ids,
+        },
+        status=status.HTTP_200_OK,
+    )
+
 
 
 

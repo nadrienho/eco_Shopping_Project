@@ -93,13 +93,7 @@ function LoginContent() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-green-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link
-            href="/"
-            className="absolute left-0 top-0 flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-green-600 transition-colors"
-          >
-            <Home size={18} />
-            <span>Home</span>
-          </Link>
+          
           <div className="flex items-center justify-center gap-2 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-green-500 rounded-lg flex items-center justify-center shadow-md">
               <span className="text-white text-xl font-bold">♻️</span>

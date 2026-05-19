@@ -79,7 +79,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'id', 'name', 'description', 'price', 'stock', 'category', 'vendor',
             'created_at', 'weight', 'material_type', 'transport_distance', 'transport_mode',
             'energy_usage', 'grid_intensity', 'co2_saved', 'status', 'co2_baseline', 'actual_co2', 'eco_score', 'image', 'vendor_name', 'average_rating', 'review_count',
-            'reviews',
+            'reviews', 'featured',
 
         ]
 

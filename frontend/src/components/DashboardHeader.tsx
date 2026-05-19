@@ -99,7 +99,7 @@ export default function DashboardHeader({
 
         {/* Search */}
         <div className="flex-1 flex justify-center">
-          <form onSubmit={handleSearch} className="flex-1 max-w-xl ">
+          <form onSubmit={handleSearch} className="w-full max-w-xl md:max-w-md sm:max-w-xs ">
           <div className="relative">
             <Search
               size={18}
@@ -120,7 +120,7 @@ export default function DashboardHeader({
         
 
         {/* User Profile Dropdown */}
-        <div className="hidden md:flex items-center gap-3 relative" ref={menuRef}>
+        <div className="flex items-center gap-3 relative" ref={menuRef}>
           <button
             className="flex items-center gap-2 focus:outline-none"
             onClick={() => setMenuOpen((v) => !v)}

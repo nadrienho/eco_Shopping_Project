@@ -104,6 +104,8 @@ class Product(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
     image = models.ImageField(upload_to="ecoShop/", null=True, blank=True)
 
+    featured = models.BooleanField(default=False)
+
     def calculate_co2_baseline(self):
         """
         Calculate the baseline CO2 emissions based on the product category.
@@ -336,4 +338,6 @@ class Review(models.Model):
         ordering = ["-created_at"]
     def __str__(self):
         return f"{self.user.username} - {self.product.name} - {self.rating} stars"
+    
+
 
